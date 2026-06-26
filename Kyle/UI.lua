@@ -40,7 +40,7 @@ Ky.Name = "Ky"
 Ky.Size = UDim2.new(0, 45, 0, 45)
 Ky.Position = UDim2.new(0.5, 0, 0, 40)
 Ky.AnchorPoint = Vector2.new(0.5, 0.5)
-Ky.Image = "rbxassetid://109474087742061"
+Ky.Image = "rbxassetid://103568481311084"
 Ky.BackgroundTransparency = 1
 Ky.Parent = ScreenGui
 
