@@ -23,4 +23,14 @@ Commands["JumpPower"] = {
     Description = "Change jump height (Default: 50)"
 }
 
+Commands["Sit"] = {
+    Action = function()
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.Sit = true
+        end
+    end,
+    Description = "Force character to sit"
+}
+
 return Commands
