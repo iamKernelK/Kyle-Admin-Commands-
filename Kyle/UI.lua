@@ -1,6 +1,7 @@
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 -- تنظيف الواجهات القديمة
@@ -8,7 +9,7 @@ if CoreGui:FindFirstChild("KyleAdminUI") then CoreGui.KyleAdminUI:Destroy() end
 if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("KyleAdminUI") then LocalPlayer.PlayerGui.KyleAdminUI:Destroy() end
 
 -- ==========================================
--- 1. جلب الأوامر
+-- 1. جلب الأوامر من الرابط (بدون أي أوامر مضافة يدوياً)
 -- ==========================================
 local Commands = {}
 local url = "https://raw.githubusercontent.com/iamKernelK/Kyle-Admin-Commands-/refs/heads/main/Kyle/Commands.lua"
@@ -17,17 +18,14 @@ local success, result = pcall(function()
     return loadstring(game:HttpGet(url))()
 end)
 
-if success and type(result) == "table" and next(result) ~= nil then
+if success and type(result) == "table" then
     Commands = result
 else
-    Commands["Empty"] = {
-        Action = function() print("No commands found.") end,
-        Description = "Check your connection"
-    }
+    warn("[Kyle Admin]: Failed to load Commands.lua from Github. Please check the URL.")
 end
 
 -- ==========================================
--- 2. بناء الواجهة
+-- 2. بناء الواجهة الاحترافية الراقية
 -- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KyleAdminUI"
@@ -36,42 +34,46 @@ ScreenGui.ResetOnSpawn = false
 local successMount = pcall(function() ScreenGui.Parent = CoreGui end)
 if not successMount then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
--- زر Ky (بدون UIStroke كما طلبت)
-local Ky = Instance.new("ImageButton")
+-- زر التبديل المصغر (ky)
+local Ky = Instance.new("TextButton")
 Ky.Name = "Ky"
-Ky.Size = UDim2.new(0, 45, 0, 45)
+Ky.Size = UDim2.new(0, 38, 0, 38)
 Ky.Position = UDim2.new(0.5, 0, 0, 40)
 Ky.AnchorPoint = Vector2.new(0.5, 0.5)
-Ky.Image = "rbxassetid://109474087742061"
-Ky.BackgroundTransparency = 1
+Ky.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+Ky.Text = "ky"
+Ky.Font = Enum.Font.GothamBold
+Ky.TextColor3 = Color3.fromRGB(255, 255, 255)
+Ky.TextSize = 14
 Ky.Parent = ScreenGui
 
 local KyCorner = Instance.new("UICorner")
 KyCorner.CornerRadius = UDim.new(1, 0)
 KyCorner.Parent = Ky
 
--- الحاوية الرئيسية (لإخفاء الأشياء أثناء الأنيميشن)
+-- الحاوية الرئيسية
 local Container = Instance.new("Frame")
-Container.Size = UDim2.new(0, 400, 0, 300)
+Container.Size = UDim2.new(0, 380, 0, 280)
 Container.Position = UDim2.new(0.5, 0, 0.5, 0)
 Container.AnchorPoint = Vector2.new(0.5, 0.5)
 Container.BackgroundTransparency = 1
-Container.ClipsDescendants = true -- هذا السر اللي يخلي الدخول والخروج سحري
+Container.ClipsDescendants = true 
 Container.Parent = ScreenGui
 
--- الـ Input (مخفي تحت الحاوية كبداية)
+-- حقل الإدخال TextBox
 local Input = Instance.new("TextBox")
 Input.Name = "Input"
-Input.Size = UDim2.new(0.9, 0, 0, 45)
-Input.Position = UDim2.new(0.5, 0, 1.5, 0) -- موقع البداية (تحت)
+Input.Size = UDim2.new(0.92, 0, 0, 42)
+Input.Position = UDim2.new(0.5, 0, 1.5, 0) 
 Input.AnchorPoint = Vector2.new(0.5, 1)
-Input.BackgroundColor3 = Color3.fromRGB(20, 20, 25) -- لون احترافي داكن
-Input.BackgroundTransparency = 0.1
-Input.TextColor3 = Color3.fromRGB(255, 255, 255) -- نص أبيض نقي
+Input.BackgroundColor3 = Color3.fromRGB(22, 22, 26) 
+Input.BackgroundTransparency = 0.05
+Input.TextColor3 = Color3.fromRGB(255, 255, 255) 
 Input.Text = "" 
-Input.PlaceholderText = "" 
+Input.PlaceholderText = "Type a command here..." 
+Input.PlaceholderColor3 = Color3.fromRGB(100, 100, 105)
 Input.Font = Enum.Font.GothamMedium
-Input.TextSize = 16
+Input.TextSize = 14
 Input.ClearTextOnFocus = false
 Input.Parent = Container
 
@@ -79,10 +81,10 @@ local InputCorner = Instance.new("UICorner")
 InputCorner.CornerRadius = UDim.new(0, 8)
 InputCorner.Parent = Input
 
--- قائمة الأوامر (مخفية فوق الحاوية كبداية)
+-- قائمة عرض الأوامر
 local CmdList = Instance.new("ScrollingFrame")
-CmdList.Size = UDim2.new(0.9, 0, 1, -65)
-CmdList.Position = UDim2.new(0.5, 0, -1, 0) -- موقع البداية (فوق)
+CmdList.Size = UDim2.new(0.92, 0, 1, -62)
+CmdList.Position = UDim2.new(0.5, 0, -1, 0) 
 CmdList.AnchorPoint = Vector2.new(0.5, 0)
 CmdList.BackgroundTransparency = 1
 CmdList.ScrollBarThickness = 0 
@@ -96,75 +98,79 @@ ListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 ListLayout.Parent = CmdList
 
 -- ==========================================
--- 3. نظام الأوامر والبحث الذكي
+-- 3. نظام عرض الأوامر والبحث الذكي الفوري
 -- ==========================================
 local function UpdateList(filter)
     for _, child in pairs(CmdList:GetChildren()) do
         if child:IsA("Frame") then child:Destroy() end
     end
 
-    -- إذا كان الـ Input فارغاً، لا تظهر أي أوامر!
-    if filter == "" then 
-        CmdList.CanvasSize = UDim2.new(0, 0, 0, 0)
-        return 
-    end
-
     local count = 0
+    filter = filter or ""
+
     for cmdName, cmdData in pairs(Commands) do
-        if string.find(string.lower(cmdName), string.lower(filter)) then
+        if filter == "" or string.find(string.lower(cmdName), string.lower(filter)) then
             local ItemFrame = Instance.new("Frame")
-            ItemFrame.Size = UDim2.new(1, 0, 0, 35)
-            ItemFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-            ItemFrame.BackgroundTransparency = 0.2
+            ItemFrame.Size = UDim2.new(1, 0, 0, 36)
+            ItemFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 34)
+            ItemFrame.BackgroundTransparency = 0.15
             ItemFrame.BorderSizePixel = 0
             ItemFrame.Parent = CmdList
             
             local ItemCorner = Instance.new("UICorner")
-            ItemCorner.CornerRadius = UDim.new(0, 6)
+            ItemCorner.CornerRadius = UDim.new(0, 8)
             ItemCorner.Parent = ItemFrame
 
-            -- النص باستخدام RichText ليكون الاسم أبيض والوصف رمادي
             local ItemText = Instance.new("TextLabel")
             ItemText.Size = UDim2.new(1, -20, 1, 0)
-            ItemText.Position = UDim2.new(0, 10, 0, 0)
+            ItemText.Position = UDim2.new(0, 12, 0, 0)
             ItemText.BackgroundTransparency = 1
             ItemText.RichText = true
-            ItemText.Text = string.lower(cmdName) .. " <font color='#999999'>- " .. (cmdData.Description or "") .. "</font>"
+            ItemText.Text = "<font color='#FF8C00'><b>" .. string.lower(cmdName) .. "</b></font>  <font color='#B0B0B5'>" .. (cmdData.Description or "") .. "</font>"
             ItemText.TextColor3 = Color3.fromRGB(255, 255, 255)
             ItemText.Font = Enum.Font.Gotham
-            ItemText.TextSize = 14
+            ItemText.TextSize = 13
             ItemText.TextXAlignment = Enum.TextXAlignment.Left
             ItemText.Parent = ItemFrame
 
-            -- زر شفاف يغطي الأمر بالكامل لجعله قابلاً للضغط
             local ClickBtn = Instance.new("TextButton")
             ClickBtn.Size = UDim2.new(1, 0, 1, 0)
             ClickBtn.BackgroundTransparency = 1
             ClickBtn.Text = ""
             ClickBtn.Parent = ItemFrame
 
-            -- لما تضغط على الأمر، يكتبه لك في الـ Input
+            ClickBtn.MouseEnter:Connect(function()
+                TweenService:Create(ItemFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = Color3.fromRGB(36, 36, 44),
+                    Size = UDim2.new(1, 4, 0, 36)
+                }):Play()
+            end)
+            ClickBtn.MouseLeave:Connect(function()
+                TweenService:Create(ItemFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = Color3.fromRGB(28, 28, 34),
+                    Size = UDim2.new(1, 0, 0, 36)
+                }):Play()
+            end)
+
             ClickBtn.MouseButton1Click:Connect(function()
                 Input.Text = string.lower(cmdName) .. " "
-                Input:CaptureFocus() -- يرجع الماوس للكتابة
+                Input:CaptureFocus()
                 task.wait()
-                Input.CursorPosition = #Input.Text + 1 -- يخلي الماوس في نهاية الكلمة
+                Input.CursorPosition = #Input.Text + 1
             end)
 
             count = count + 1
         end
     end
-    CmdList.CanvasSize = UDim2.new(0, 0, 0, count * 41)
+    CmdList.CanvasSize = UDim2.new(0, 0, 0, count * 42)
 end
 
 Input:GetPropertyChangedSignal("Text"):Connect(function()
     UpdateList(Input.Text)
 end)
 
--- التنفيذ الفعلي عند ضغط Enter فقط
 Input.FocusLost:Connect(function(enterPressed)
     if enterPressed and Input.Text ~= "" then
-        -- ترتيب النص وحذف المسافات الزائدة
         local inputText = string.lower(Input.Text):match("^%s*(.-)%s*$")
         local args = string.split(inputText, " ")
         local cmdName = table.remove(args, 1)
@@ -183,7 +189,54 @@ Input.FocusLost:Connect(function(enterPressed)
 end)
 
 -- ==========================================
--- 4. نظام السحب لـ Ky
+-- 4. نظام الحركة والتحكم (الفتح والإغلاق)
+-- ==========================================
+local isOpen = false
+local openTweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+local closeTweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
+
+local function openMenu()
+    isOpen = true
+    Input.Text = ""
+    UpdateList("")
+    Input:CaptureFocus()
+    TweenService:Create(Input, openTweenInfo, {Position = UDim2.new(0.5, 0, 1, -8)}):Play()
+    TweenService:Create(CmdList, openTweenInfo, {Position = UDim2.new(0.5, 0, 0, 4)}):Play()
+end
+
+local function closeMenu()
+    isOpen = false
+    Input:ReleaseFocus()
+    TweenService:Create(Input, closeTweenInfo, {Position = UDim2.new(0.5, 0, 1.5, 0)}):Play()
+    TweenService:Create(CmdList, closeTweenInfo, {Position = UDim2.new(0.5, 0, -1, 0)}):Play()
+end
+
+-- ==========================================
+-- 5. حساس الإغلاق الذكي عند الضغط بالخارج
+-- ==========================================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not isOpen then return end
+    
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        local pos = input.Position
+        local objects = ScreenGui:GetGuiObjectsAtPosition(pos.X, pos.Y)
+        
+        local clickedInside = false
+        for _, obj in pairs(objects) do
+            if obj:IsDescendantOf(Container) or obj == Ky then
+                clickedInside = true
+                break
+            end
+        end
+        
+        if not clickedInside then
+            closeMenu()
+        end
+    end
+end)
+
+-- ==========================================
+-- 6. التحكم والتفاعل الخاص بزر الـ ky
 -- ==========================================
 local isDragging = false
 local hasMoved = false
@@ -196,50 +249,42 @@ Ky.InputBegan:Connect(function(input)
         hasMoved = false
         dragStartPos = input.Position
         startGuiPos = Ky.Position
+        TweenService:Create(Ky, TweenInfo.new(0.1), {Size = UDim2.new(0, 34, 0, 34)}):Play()
     end
 end)
 
 Ky.InputChanged:Connect(function(input)
     if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStartPos
-        if delta.Magnitude > 3 then 
+        if delta.Magnitude > 4 then 
             hasMoved = true 
         end
         if hasMoved then
-            TweenService:Create(Ky, TweenInfo.new(0.08, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+            TweenService:Create(Ky, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
                 Position = UDim2.new(startGuiPos.X.Scale, startGuiPos.X.Offset + delta.X, startGuiPos.Y.Scale, startGuiPos.Y.Offset + delta.Y)
             }):Play()
         end
     end
 end)
 
--- ==========================================
--- 5. الأنيميشن الخرافي (الفتح والإغلاق)
--- ==========================================
-local isOpen = false
-local openTweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
-local closeTweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
-
 Ky.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         isDragging = false
+        TweenService:Create(Ky, TweenInfo.new(0.1), {Size = UDim2.new(0, 38, 0, 38)}):Play()
         
         if not hasMoved then
-            isOpen = not isOpen
             if isOpen then
-                -- الدخول
-                Input.Text = ""
-                UpdateList("")
-                Input:CaptureFocus()
-                -- Input يأتي من تحت، والأوامر تأتي من فوق لموقعها الطبيعي
-                TweenService:Create(Input, openTweenInfo, {Position = UDim2.new(0.5, 0, 1, -10)}):Play()
-                TweenService:Create(CmdList, openTweenInfo, {Position = UDim2.new(0.5, 0, 0, 0)}):Play()
+                closeMenu()
             else
-                -- الخروج
-                -- Input ينزل لتحت ويختفي، والأوامر تطلع لفوق وتختفي
-                TweenService:Create(Input, closeTweenInfo, {Position = UDim2.new(0.5, 0, 1.5, 0)}):Play()
-                TweenService:Create(CmdList, closeTweenInfo, {Position = UDim2.new(0.5, 0, -1, 0)}):Play()
+                openMenu()
             end
         end
     end
+end)
+
+Ky.MouseEnter:Connect(function()
+    TweenService:Create(Ky, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 160, 20)}):Play()
+end)
+Ky.MouseLeave:Connect(function()
+    TweenService:Create(Ky, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 140, 0)}):Play()
 end)
