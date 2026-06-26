@@ -1,13 +1,25 @@
--- ModuleScript: Commands
 local Commands = {}
 
 Commands["Speed"] = {
-    Action = function(val) game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val end,
+    Action = function(val)
+        val = tonumber(val) or 16
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = val
+        end
+    end,
     Description = "Change walk speed (Default: 16)"
 }
 
 Commands["JumpPower"] = {
-    Action = function(val) game.Players.LocalPlayer.Character.Humanoid.JumpPower = val end,
+    Action = function(val)
+        val = tonumber(val) or 50
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.UseJumpPower = true
+            char.Humanoid.JumpPower = val
+        end
+    end,
     Description = "Change jump height (Default: 50)"
 }
 
