@@ -115,6 +115,7 @@ Commands["Freeze"] = { Action = function() LocalPlayer.Character.HumanoidRootPar
 Commands["unFreeze"] = { Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = false end, Description = "Unfreeze character" }
 Commands["Sit"] = { Action = function() LocalPlayer.Character.Humanoid.Sit = true end, Description = "Force sit" }
 Commands["Jump"] = { Action = function() LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end, Description = "Jump once" }
+Commands["Dex"] = { Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Run Dex Explorer" }
 
 -- ==========================================
 -- الاستهداف والانتقال
