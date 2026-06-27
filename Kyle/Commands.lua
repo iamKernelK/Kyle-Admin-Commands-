@@ -38,6 +38,16 @@ end, Description = "Chat above your head"}
 Commands["AntiVoid"] = {Action = function() local p=game.Players.LocalPlayer; p.Character.HumanoidRootPart.Touched:Connect(function(h) if h.Name=="FallenPartsDestroyHeight" then p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0,50,0) end end) end, Description = "Walk over void"}
 Commands["Flashback"]={Action=function() if LastDeath and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame=LastDeath end end,Description="TP to last death"}
 Commands["Jumppower"] = {Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power"}
+-- ProximityPrompt Commands
+Commands["ShowProxi"]={Action=function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("ProximityPrompt") then v.Enabled=true end end end,Description="Show all ProximityPrompts"}
+Commands["HideProxi"]={Action=function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("ProximityPrompt") then v.Enabled=false end end end,Description="Hide all ProximityPrompts"}
+
+-- TouchInterest Commands
+Commands["ShowTouch"]={Action=function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("TouchTransmitter") then v.Parent.Transparency=0.5 end end end,Description="Show all TouchInterests"}
+Commands["HideTouch"]={Action=function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("TouchTransmitter") then v.Parent.Transparency=1 end end end,Description="Hide all TouchInterests"}
+local BackupTouch={}
+Commands["AntiTouch"]={Action=function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("TouchTransmitter") then BackupTouch[v]=v.Parent; v:Destroy() end end end,Description="Remove all TouchInterests"}
+Commands["UnAntiTouch"]={Action=function() for v,p in pairs(BackupTouch) do if p and not v.Parent then v.Parent=p end end end,Description="Restore all TouchInterests"}
 Commands["ResetJumpPower"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 50 end, Description = "Reset jump power"}
 Commands["Infjump"] = {Action = function() ActiveStates.Infjump = true; UserInputService.JumpRequest:Connect(function() if ActiveStates.Infjump then LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end end) end, Description = "Enable infinite jump"}
 Commands["unInfjump"] = {Action = function() ActiveStates.Infjump = false end, Description = "Disable infinite jump"}
