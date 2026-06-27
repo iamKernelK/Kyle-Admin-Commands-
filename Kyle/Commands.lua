@@ -1,13 +1,15 @@
-local Commands = {}
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Lighting = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TeleportService = game:GetService("TeleportService")
-local MarketplaceService = game:GetService("MarketplaceService")
-local ActiveStates = {}
-local function setclipboard(text) if setclipboard then setclipboard(text) end end
+local Commands={}
+local Players=game:GetService("Players")
+local LocalPlayer=Players.LocalPlayer
+local TweenService=game:GetService("TweenService")
+local UserInputService=game:GetService("UserInputService")
+local ActiveStates={}
+local GlobalTweenSpeed=150
+local LastDeath=nil
+local function trackDeath(c) c:WaitForChild("Humanoid").Died:Connect(function() if c:FindFirstChild("HumanoidRootPart") then LastDeath=c.HumanoidRootPart.CFrame end end) end
+LocalPlayer.CharacterAdded:Connect(trackDeath)
+if LocalPlayer.Character then trackDeath(LocalPlayer.Character) end
+local lastJump=0
 Commands["Speed"] = {Action = function(v) LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(v) or 16 end, Description = "Change walk speed"}
 Commands["ResetSpeed"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed"}
 Commands["Jumppower"] = {Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power"}
