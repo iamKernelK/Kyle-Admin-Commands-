@@ -21,6 +21,21 @@ Commands["Infjump"]={Action=function() ActiveStates.Infjump=true; UserInputServi
 Commands["unInfjump"]={Action=function() ActiveStates.Infjump=false end,Description="Disable Infjump"}
 Commands["tto"]={Args="Player",Action=function(n) local t=Players:FindFirstChild(n); if t and t.Character and t.Character:FindFirstChild("HumanoidRootPart") then local hrp=LocalPlayer.Character.HumanoidRootPart; local dist=(hrp.Position-t.Character.HumanoidRootPart.Position).Magnitude; local tween=TweenService:Create(hrp,TweenInfo.new(dist/GlobalTweenSpeed,Enum.EasingStyle.Linear),{CFrame=t.Character.HumanoidRootPart.CFrame}); tween:Play() end end,Description="Tween TP to player"}
 Commands["TweenSpeed"]={Args="Speed",Action=function(v) GlobalTweenSpeed=tonumber(v) or 150 end,Description="Set TweenSpeed"}
+Commands["AntiVoid2"] = {Action = function() game.Workspace.FallenPartsDestroyHeight = -999999 end, Description = "Prevent death in void"}
+Commands["Explode"] = {Action = function() Instance.new("Explosion", game.Players.LocalPlayer.Character.HumanoidRootPart) end, Description = "Explode yourself"}
+Commands["Firework"] = {Action = function() 
+    local char = game.Players.LocalPlayer.Character
+    local hrp = char.HumanoidRootPart
+    local bv = Instance.new("BodyVelocity", hrp); bv.Velocity = Vector3.new(0, 100, 0); bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+    local bg = Instance.new("BodyAngularVelocity", hrp); bg.AngularVelocity = Vector3.new(0, 50, 0); bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+    task.wait(1.5); bv:Destroy(); bg:Destroy(); Instance.new("Explosion", hrp)
+end, Description = "Firework effect"}
+Commands["BubbleChat"] = {Args = "Message", Action = function(msg)
+    local Players = game:GetService("Players")
+    local Chat = game:GetService("Chat")
+    Chat:Chat(Players.LocalPlayer.Character.Head, msg, Enum.ChatColor.White)
+end, Description = "Chat above your head"}
+Commands["AntiVoid"] = {Action = function() local p=game.Players.LocalPlayer; p.Character.HumanoidRootPart.Touched:Connect(function(h) if h.Name=="FallenPartsDestroyHeight" then p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0,50,0) end end) end, Description = "Walk over void"}
 Commands["Flashback"]={Action=function() if LastDeath and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame=LastDeath end end,Description="TP to last death"}
 Commands["Jumppower"] = {Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power"}
 Commands["ResetJumpPower"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 50 end, Description = "Reset jump power"}
