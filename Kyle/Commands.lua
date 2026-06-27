@@ -70,6 +70,34 @@ Commands["Jobid"] = {Action = function() setclipboard(game.JobId) end, Descripti
 Commands["Ambient"] = {Args = "R G B", Action = function(args) local r,g,b = args:match("(%d+) (%d+) (%d+)") game:GetService("Lighting").Ambient = Color3.fromRGB(r,g,b) end, Description = "Set ambient color"}
 Commands["Headless"] = {Action = function() pcall(function() local char = game.Players.LocalPlayer.Character char.Head.Transparency = 1 char.Head.face:Destroy() for _,v in pairs(char.Head:GetChildren()) do if v:IsA("Accessory") or v:IsA("Decal") then v:Destroy() end end end) end, Description = "Headless mode"}
 Commands["JoinJobid"] = {Action = function(id) TeleportService:TeleportToPlaceInstance(game.PlaceId, id, LocalPlayer) end, Description = "Join JobId"}
+-- Korblox Command
+Commands["Korblox"] = {
+    Action = function()
+        local char = game:GetService("Players").LocalPlayer.Character
+        if char and char:FindFirstChild("Right Leg") then
+            char["Right Leg"]:Destroy()
+        end
+        local korblox = Instance.new("MeshPart")
+        korblox.MeshId = "rbxassetid://139607718"
+        korblox.Name = "Right Leg"
+        korblox.Parent = char
+    end,
+    Description = "Apply Korblox leg"
+}
+
+-- Morph Command (Requires username)
+Commands["Morph"] = {
+    Args = "Username",
+    Action = function(target)
+        local player = game:GetService("Players").LocalPlayer
+        local desc = game:GetService("Players"):GetHumanoidDescriptionFromUserName(target)
+        if desc then
+            player.Character.Humanoid:ApplyDescription(desc)
+        end
+    end,
+    Description = "Morph into another player"
+}
+
 Commands["CopyName"] = {Action = function() setclipboard(LocalPlayer.DisplayName) end, Description = "Copy DisplayName"}
 Commands["CopyUsername"] = {Action = function() setclipboard(LocalPlayer.Name) end, Description = "Copy Username"}
 Commands["CopyPlaceId"] = {Action = function() setclipboard(tostring(game.PlaceId)) end, Description = "Copy PlaceId"}
