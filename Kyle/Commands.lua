@@ -23,6 +23,39 @@ Commands["tto"]={Args="Player",Action=function(n) local t=Players:FindFirstChild
 Commands["TweenSpeed"]={Args="Speed",Action=function(v) GlobalTweenSpeed=tonumber(v) or 150 end,Description="Set TweenSpeed"}
 Commands["AntiVoid2"] = {Action = function() game.Workspace.FallenPartsDestroyHeight = -999999 end, Description = "Prevent death in void"}
 Commands["Explode"] = {Action = function() Instance.new("Explosion", game.Players.LocalPlayer.Character.HumanoidRootPart) end, Description = "Explode yourself"}
+-- AddButton / ab Commands
+local ButtonContainer = Instance.new("ScrollingFrame", ScreenGui) -- يجب أن يكون هذا الـ Container موجوداً في الواجهة
+ButtonContainer.Size = UDim2.new(0, 200, 0, 400); ButtonContainer.Position = UDim2.new(0.8, 0, 0.2, 0)
+ButtonContainer.BackgroundTransparency = 1
+
+local function CreateQuickBtn(name, cmd, toggleCmd)
+    local btn = Instance.new("TextButton", ButtonContainer)
+    btn.Name = name; btn.Size = UDim2.new(0, 150, 0, 40); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    local stroke = Instance.new("UIStroke", btn); stroke.Color = Color3.fromRGB(100, 100, 100); stroke.Thickness = 1.5
+    btn.Text = name; btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = Enum.Font.GothamBold
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.BackgroundColor3 = active and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(40, 40, 40)
+        pcall(function() if toggleCmd and active then loadstring(game:HttpGet(cmd))() else loadstring(game:HttpGet(toggleCmd))() end end)
+    end)
+    btn.Draggable = true -- Simple drag
+end
+
+Commands["AddButton"] = {Args = "Name Command ToggleCommand", Action = function(args) local n,c,t = args:match("(%S+) (%S+) (%S+)") CreateQuickBtn(n,c,t) end, Description = "Add quick button"}
+Commands["ab"] = Commands["AddButton"]
+Commands["RemoveButton"] = {Args = "Name", Action = function(name) for _,v in pairs(ButtonContainer:GetChildren()) do if v.Name == name then v:Destroy() end end end, Description = "Remove quick button"}
+Commands["rb"] = Commands["RemoveButton"]
+
+-- Sound Command
+Commands["Sound"] = {Args = "ID", Action = function(id) local s = Instance.new("Sound", workspace); s.SoundId = "rbxassetid://"..id; s:Play() end, Description = "Play sound"}
+
+-- AntiSit / Seat Commands
+local SavedSeats = {}
+Commands["AntiSit"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Seat") or v:IsA("VehicleSeat") then SavedSeats[v] = v.Parent; v.Parent = nil end end end, Description = "Remove all seats"}
+Commands["UnAntiSit"] = {Action = function() for v,p in pairs(SavedSeats) do v.Parent = p end; SavedSeats = {} end, Description = "Restore seats"}
+Commands["Seat"] = {Action = function() local h = game.Players.LocalPlayer.Character.Humanoid; for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Seat") then h.Sit = true; break end end end, Description = "Sit on nearest seat"}
 Commands["Firework"] = {Action = function() 
     local char = game.Players.LocalPlayer.Character
     local hrp = char.HumanoidRootPart
