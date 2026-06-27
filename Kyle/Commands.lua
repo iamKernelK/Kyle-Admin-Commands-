@@ -24,27 +24,52 @@ Commands["TweenSpeed"]={Args="Speed",Action=function(v) GlobalTweenSpeed=tonumbe
 Commands["AntiVoid2"] = {Action = function() game.Workspace.FallenPartsDestroyHeight = -999999 end, Description = "Prevent death in void"}
 Commands["Explode"] = {Action = function() Instance.new("Explosion", game.Players.LocalPlayer.Character.HumanoidRootPart) end, Description = "Explode yourself"}
 -- AddButton / ab Commands
-local ButtonContainer = Instance.new("ScrollingFrame", ScreenGui) -- يجب أن يكون هذا الـ Container موجوداً في الواجهة
-ButtonContainer.Size = UDim2.new(0, 200, 0, 400); ButtonContainer.Position = UDim2.new(0.8, 0, 0.2, 0)
-ButtonContainer.BackgroundTransparency = 1
+local ButtonContainer = Instance.new("ScrollingFrame", ScreenGui)
+ButtonContainer.Size = UDim2.new(0, 160, 0, 400); ButtonContainer.Position = UDim2.new(0.85, 0, 0.2, 0)
+ButtonContainer.BackgroundTransparency = 1; ButtonContainer.ScrollBarThickness = 0
 
 local function CreateQuickBtn(name, cmd, toggleCmd)
     local btn = Instance.new("TextButton", ButtonContainer)
-    btn.Name = name; btn.Size = UDim2.new(0, 150, 0, 40); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.Name = name; btn.Size = UDim2.new(0, 140, 0, 40); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.Draggable = true; btn.Text = name; btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = Enum.Font.GothamBold
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-    local stroke = Instance.new("UIStroke", btn); stroke.Color = Color3.fromRGB(100, 100, 100); stroke.Thickness = 1.5
-    btn.Text = name; btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = Enum.Font.GothamBold
+    local stroke = Instance.new("UIStroke", btn); stroke.Color = Color3.fromRGB(60, 60, 60); stroke.Thickness = 1.5
+    
     local active = false
     btn.MouseButton1Click:Connect(function()
-        active = not active
-        btn.BackgroundColor3 = active and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(40, 40, 40)
-        pcall(function() if toggleCmd and active then loadstring(game:HttpGet(cmd))() else loadstring(game:HttpGet(toggleCmd))() end end)
+        if toggleCmd then
+            active = not active
+            btn.BackgroundColor3 = active and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(40, 40, 40)
+            pcall(function() if active then Commands[cmd].Action() else Commands[toggleCmd].Action() end end)
+        else
+            pcall(function() Commands[cmd].Action() end)
+        end
     end)
-    btn.Draggable = true -- Simple drag
 end
 
-Commands["AddButton"] = {Args = "Name Command ToggleCommand", Action = function(args) local n,c,t = args:match("(%S+) (%S+) (%S+)") CreateQuickBtn(n,c,t) end, Description = "Add quick button"}
+Commands["AddButton"] = {
+    Args = "Name Command ToggleCommand(Optional)",
+    Action = function(args)
+        local parts = string.split(args, " ")
+        if #parts == 2 then
+            CreateQuickBtn(parts[1], parts[2], nil)
+        elseif #parts >= 3 then
+            CreateQuickBtn(parts[1], parts[2], parts[3])
+        end
+    end,
+    Description = "Add quick button"
+}
 Commands["ab"] = Commands["AddButton"]
+
+Commands["RemoveButton"] = {
+    Args = "Name",
+    Action = function(name)
+        if ButtonContainer:FindFirstChild(name) then ButtonContainer[name]:Destroy() end
+    end,
+    Description = "Remove quick button"
+}
+Commands["rb"] = Commands["RemoveButton"]
+
 Commands["RemoveButton"] = {Args = "Name", Action = function(name) for _,v in pairs(ButtonContainer:GetChildren()) do if v.Name == name then v:Destroy() end end end, Description = "Remove quick button"}
 Commands["rb"] = Commands["RemoveButton"]
 
