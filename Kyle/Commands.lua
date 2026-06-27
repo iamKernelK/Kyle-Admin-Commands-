@@ -67,6 +67,8 @@ Commands["Kick"] = {Action = function(r) LocalPlayer:Kick(r or "Disconnected") e
 Commands["Jump"] = {Action = function() LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end, Description = "Jump"}
 Commands["ClickTp"] = {Action = function() ActiveStates.ClickTp = not ActiveStates.ClickTp; local Mouse = LocalPlayer:GetMouse(); UserInputService.InputBegan:Connect(function(input, gpe) if gpe then return end; if ActiveStates.ClickTp and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then if Mouse.Hit then LocalPlayer.Character:MoveTo(Mouse.Hit.p) end end end) end, Description = "Toggle ClickTp"}
 Commands["Jobid"] = {Action = function() setclipboard(game.JobId) end, Description = "Copy JobId"}
+Commands["Ambient"] = {Args = "R G B", Action = function(args) local r,g,b = args:match("(%d+) (%d+) (%d+)") game:GetService("Lighting").Ambient = Color3.fromRGB(r,g,b) end, Description = "Set ambient color"}
+Commands["Headless"] = {Action = function() pcall(function() local char = game.Players.LocalPlayer.Character char.Head.Transparency = 1 char.Head.face:Destroy() for _,v in pairs(char.Head:GetChildren()) do if v:IsA("Accessory") or v:IsA("Decal") then v:Destroy() end end end) end, Description = "Headless mode"}
 Commands["JoinJobid"] = {Action = function(id) TeleportService:TeleportToPlaceInstance(game.PlaceId, id, LocalPlayer) end, Description = "Join JobId"}
 Commands["CopyName"] = {Action = function() setclipboard(LocalPlayer.DisplayName) end, Description = "Copy DisplayName"}
 Commands["CopyUsername"] = {Action = function() setclipboard(LocalPlayer.Name) end, Description = "Copy Username"}
