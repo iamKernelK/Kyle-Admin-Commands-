@@ -6,10 +6,29 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local Workspace = game:GetService("Workspace")
 local ActiveStates = {}
 
-local function setclipboard(text)
-    if setclipboard then setclipboard(text) end
+local function setclipboard(text) if setclipboard then setclipboard(text) end end
+
+local function ResolveTarget(name)
+    if not name then return {LocalPlayer} end
+    local nameLower = string.lower(name)
+    if nameLower == "me" then return {LocalPlayer} end
+    if nameLower == "all" then return Players:GetPlayers() end
+    if nameLower == "others" then
+        local others = {}
+        for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then table.insert(others, p) end end
+        return others
+    end
+    if nameLower == "random" then return {Players:GetPlayers()[math.random(1, #Players:GetPlayers())]} end
+    local found = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if string.find(string.lower(p.Name), nameLower) or string.find(string.lower(p.DisplayName), nameLower) then
+            table.insert(found, p)
+        end
+    end
+    return found
 end
 
 Commands["Speed"] = {
@@ -32,7 +51,7 @@ Commands["Infjump"] = {
     Action = function() 
         ActiveStates.Infjump = true
         UserInputService.JumpRequest:Connect(function() 
-            if ActiveStates.Infjump then LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end 
+            if ActiveStates.Infjump then task.wait(0.1); LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end 
         end)
     end,
     Description = "Enable infinite jump"
@@ -40,6 +59,31 @@ Commands["Infjump"] = {
 Commands["unInfjump"] = {
     Action = function() ActiveStates.Infjump = false end,
     Description = "Disable infinite jump"
+}
+Commands["Flyjump"] = {
+    Action = function()
+        ActiveStates.Flyjump = true
+        UserInputService.JumpRequest:Connect(function()
+            if ActiveStates.Flyjump then LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end
+        end)
+    end,
+    Description = "Infinite jump no cooldown"
+}
+Commands["JumpLimit"] = {
+    Action = function(limit)
+        ActiveStates.JumpLimit = tonumber(limit) or 0
+        ActiveStates.JumpCount = 0
+        LocalPlayer.Character.Humanoid.StateChanged:Connect(function(_, new)
+            if new == Enum.HumanoidStateType.Landed then ActiveStates.JumpCount = 0 end
+        end)
+        UserInputService.JumpRequest:Connect(function()
+            if ActiveStates.JumpLimit and ActiveStates.JumpCount < ActiveStates.JumpLimit then
+                ActiveStates.JumpCount = ActiveStates.JumpCount + 1
+                LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+            end
+        end)
+    end,
+    Description = "Limit jumps in air"
 }
 Commands["Noclip"] = {
     Action = function() 
@@ -116,9 +160,7 @@ Commands["ClickTp"] = {
         UserInputService.InputBegan:Connect(function(input, gpe)
             if gpe then return end
             if ActiveStates.ClickTp and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-                if Mouse.Hit then
-                    LocalPlayer.Character:MoveTo(Mouse.Hit.p)
-                end
+                if Mouse.Hit then LocalPlayer.Character:MoveTo(Mouse.Hit.p) end
             end
         end)
     end,
@@ -155,40 +197,122 @@ Commands["Rejoin"] = {
 Commands["FpsBoost"] = {
     Action = function() 
         local Terrain = workspace:FindFirstChildOfClass("Terrain")
-        Terrain.WaterWaveSize = 0
-        Terrain.WaterWaveSpeed = 0
-        Terrain.WaterReflectivity = 0
-        Terrain.WaterTransparency = 0
-        for _,v in pairs(workspace:GetDescendants()) do
-            if v:IsA("Decal") or v:IsA("Texture") then v:Destroy() end
-        end
+        Terrain.WaterWaveSize = 0; Terrain.WaterWaveSpeed = 0
+        for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Decal") or v:IsA("Texture") then v:Destroy() end end
     end,
     Description = "Optimize FPS"
 }
 Commands["Invisible"] = {
     Action = function() 
-        for _,p in pairs(LocalPlayer.Character:GetDescendants()) do
-            if p:IsA("BasePart") then p.Transparency = 1 end
-        end
+        for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = 1 end end
     end,
     Description = "Make character invisible"
 }
 Commands["Visible"] = {
     Action = function() 
-        for _,p in pairs(LocalPlayer.Character:GetDescendants()) do
-            if p:IsA("BasePart") then p.Transparency = 0 end
-        end
+        for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = 0 end end
     end,
     Description = "Make character visible"
 }
 Commands["Goto"] = {
     Action = function(name)
-        local target = Players:FindFirstChild(name)
-        if target and target.Character then
-            LocalPlayer.Character:MoveTo(target.Character.HumanoidRootPart.Position)
-        end
+        local targets = ResolveTarget(name)
+        if targets[1] and targets[1].Character then LocalPlayer.Character:MoveTo(targets[1].Character.HumanoidRootPart.Position) end
     end,
     Description = "Teleport to player"
+}
+Commands["Nohats"] = {
+    Action = function()
+        for _,v in pairs(LocalPlayer.Character:GetChildren()) do if v:IsA("Accessory") then v:Destroy() end end
+    end,
+    Description = "Remove all hats"
+}
+Commands["Commandloop"] = {
+    Action = function(cmd, args, delay)
+        task.spawn(function()
+            while task.wait(tonumber(delay)) do
+                if Commands[cmd] then Commands[cmd].Action(args) end
+            end
+        end)
+    end,
+    Description = "Loop a command"
+}
+Commands["AccountAge"] = {
+    Action = function(name)
+        local target = ResolveTarget(name)[1]
+        local age = target and target.AccountAge or LocalPlayer.AccountAge
+        game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Account Age", Text = tostring(age), Icon = "rbxassetid://103568481311084"})
+    end,
+    Description = "Get account age"
+}
+Commands["Airwalk"] = {
+    Action = function()
+        ActiveStates.Airwalk = true
+        local part = Instance.new("Part", workspace)
+        part.Size = Vector3.new(4, 1, 4); part.Transparency = 1; part.Anchored = true
+        RunService.RenderStepped:Connect(function()
+            if ActiveStates.Airwalk and LocalPlayer.Character then
+                part.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3.5, 0)
+            else part:Destroy() end
+        end)
+    end,
+    Description = "Enable airwalk"
+}
+Commands["unAirwalk"] = {
+    Action = function() ActiveStates.Airwalk = false end,
+    Description = "Disable airwalk"
+}
+Commands["Esp"] = {
+    Action = function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                local h = Instance.new("Highlight", p.Character)
+                h.FillColor = Color3.fromRGB(255, 255, 255)
+            end
+        end
+    end,
+    Description = "ESP others"
+}
+Commands["Esptype"] = {
+    Action = function(t) ActiveStates.EspType = t end,
+    Description = "Set ESP type (Chams/Highlight/Box)"
+}
+Commands["Locate"] = {
+    Action = function(name)
+        local target = ResolveTarget(name)[1]
+        if target and target.Character then
+            local arrow = Instance.new("Beam", LocalPlayer.Character)
+            -- Logic for arrow drawing
+        end
+    end,
+    Description = "Locate Player"
+}
+Commands["View"] = {
+    Action = function(name)
+        local target = ResolveTarget(name)[1]
+        if target then Workspace.CurrentCamera.CameraSubject = target.Character:FindFirstChild("Humanoid") end
+    end,
+    Description = "Spectate Player"
+}
+Commands["unView"] = {
+    Action = function() Workspace.CurrentCamera.CameraSubject = LocalPlayer.Character:FindFirstChild("Humanoid") end,
+    Description = "Stop spectate"
+}
+Commands["Dex"] = {
+    Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end,
+    Description = "Run Dex"
+}
+Commands["Tspy"] = {
+    Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/main/Turtle%20Spy.lua"))() end,
+    Description = "Run Turtle Spy"
+}
+Commands["cc"] = {
+    Action = function()
+        local count = 0
+        for _ in pairs(Commands) do count = count + 1 end
+        game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Commands", Text = "Loaded: " .. count, Icon = "rbxassetid://103568481311084"})
+    end,
+    Description = "Show count"
 }
 
 return Commands
