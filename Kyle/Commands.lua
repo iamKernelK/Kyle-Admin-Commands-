@@ -14,6 +14,94 @@ Commands["Speed"] = {Action = function(v) LocalPlayer.Character.Humanoid.WalkSpe
 Commands["ResetSpeed"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed"}
 Commands["Cmds"]={Action=function() if not KyleUI then local Guis=loadstring(game:HttpGet("https://raw.githubusercontent.com/iamKernelK/Kyle-Admin-Commands-/refs/heads/main/Kyle/Guis/Cmds.lua"))() KyleUI=Guis.CreateCmdsUI() end KyleUI.Enabled=not KyleUI.Enabled end,Description="Toggle UI"}
 Commands["cc"]={Action=function() local c=0 for _ in pairs(Commands) do c=c+1 end game:GetService("StarterGui"):SetCore("SendNotification",{Title="Kyle Admin",Text="Total Commands: "..c,Duration=5}) end,Description="Check total command count"}
+Commands["Fly"] = {
+    Action = function()
+        local p = game:GetService("Players").LocalPlayer
+        local uis = game:GetService("UserInputService")
+        local rs = game:GetService("RunService")
+        
+        if _G.KyleFlyStop then _G.KyleFlyStop() end
+        
+        local flying, speed = false, 50
+        local bv, bg
+        
+        local function toggleFly()
+            flying = not flying
+            local char = p.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            local hrp = char.HumanoidRootPart
+            
+            if flying then
+                char.Humanoid.PlatformStand = true
+                bv = Instance.new("BodyVelocity", hrp)
+                bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                bg = Instance.new("BodyGyro", hrp)
+                bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                bg.P = 9e4
+                
+                _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
+                    local cam = workspace.CurrentCamera
+                    local md = char.Humanoid.MoveDirection
+                    if md.Magnitude > 0 then
+                        bv.Velocity = Vector3.new(md.X, cam.CFrame.LookVector.Y * md.Magnitude, md.Z).Unit * speed
+                        bg.CFrame = CFrame.new(hrp.Position, hrp.Position + bv.Velocity)
+                    else
+                        bv.Velocity = Vector3.new(0, 0, 0)
+                        bg.CFrame = cam.CFrame
+                    end
+                end)
+            else
+                char.Humanoid.PlatformStand = false
+                if bv then bv:Destroy() end
+                if bg then bg:Destroy() end
+                if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+            end
+            
+            local gui = p.PlayerGui:FindFirstChild("KyleFlyGUI")
+            if gui and gui:FindFirstChild("FlyToggle") then
+                gui.FlyToggle.Text = flying and "Unfly" or "Fly"
+                gui.FlyToggle.BackgroundColor3 = flying and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 40, 40)
+            end
+        end
+
+        if uis.TouchEnabled and not uis.KeyboardEnabled then
+            local sg = Instance.new("ScreenGui", p.PlayerGui)
+            sg.Name = "KyleFlyGUI"
+            local btn = Instance.new("TextButton", sg)
+            btn.Name = "FlyToggle"
+            btn.Size = UDim2.new(0, 60, 0, 60)
+            btn.Position = UDim2.new(1, -80, 0.5, -30)
+            btn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+            btn.Text = "Fly"
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Font = Enum.Font.GothamBold
+            btn.TextScaled = true
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+            Instance.new("UIStroke", btn).Thickness = 2
+            btn.MouseButton1Click:Connect(toggleFly)
+        else
+            _G.KyleFlyKey = uis.InputBegan:Connect(function(input, gp)
+                if not gp and input.KeyCode == Enum.KeyCode.F then toggleFly() end
+            end)
+        end
+        
+        _G.KyleFlyStop = function()
+            flying = true; toggleFly() 
+            if _G.KyleFlyKey then _G.KyleFlyKey:Disconnect() end
+            if p.PlayerGui:FindFirstChild("KyleFlyGUI") then p.PlayerGui.KyleFlyGUI:Destroy() end
+            _G.KyleFlyStop = nil
+        end
+    end,
+    Description = "Smart Fly System"
+}
+
+Commands["UnFly"] = {
+    Action = function()
+        if _G.KyleFlyStop then _G.KyleFlyStop() end
+    end,
+    Description = "Remove Fly System"
+}
+
 Commands["AirWalk"]={Action=function() ActiveStates.AirWalk=not ActiveStates.AirWalk; if ActiveStates.AirWalk then local p=Instance.new("Part",workspace); p.Name="AdminAirWalk"; p.Size=Vector3.new(5,1,5); p.Anchored=true; p.Transparency=1; task.spawn(function() while ActiveStates.AirWalk and task.wait() do if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then p.CFrame=LocalPlayer.Character.HumanoidRootPart.CFrame*CFrame.new(0,-3.5,0) end end; p:Destroy() end) else ActiveStates.AirWalk=false end end,Description="Toggle AirWalk"}
 Commands["unHitbox"]={Action=function() for _,p in pairs(Players:GetPlayers()) do if p~=LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then p.Character.HumanoidRootPart.Size=Vector3.new(2,2,1); p.Character.HumanoidRootPart.Transparency=1 end end end,Description="Reset Hitboxes"}
 Commands["unClicktp"]={Action=function() ActiveStates.ClickTp=false end,Description="Disable ClickTp"}
