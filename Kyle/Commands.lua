@@ -39,6 +39,26 @@ _G.SavedPos = CFrame.new(0,50,0)
 
 Commands["Speed"] = { Action = function(v) _G.PrevWalkSpeed = LocalPlayer.Character.Humanoid.WalkSpeed; LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(v) or 16 end, Description = "Change walk speed" }
 Commands["Calc"] = { Action = function(e) local s, r = pcall(function() return loadstring("return " .. e)() end) game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Calculator", Text = s and tostring(r) or "Error"}) end, Description = "Math calculator" }
+Commands["KillSelf"] = {Action = function() LocalPlayer.Character.Humanoid.Health = 0 end, Description = "Suicide"}
+Commands["DeleteHead"] = {Action = function() LocalPlayer.Character.Head:Destroy() end, Description = "Remove head"}
+Commands["FreezeAllPlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.HumanoidRootPart.Anchored = true end end end, Description = "Freeze all"}
+Commands["UnfreezeAllPlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.HumanoidRootPart.Anchored = false end end end, Description = "Unfreeze all"}
+Commands["SitAllPlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.Sit = true end end end, Description = "Sit all"}
+Commands["JumpAllPlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.Jump = true end end end, Description = "Jump all"}
+Commands["RemoveAllHats"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then for _,a in pairs(p.Character:GetChildren()) do if a:IsA("Accessory") then a:Destroy() end end end end end, Description = "Del hats all"}
+Commands["RemoveAllTools"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do p.Backpack:ClearAllChildren() end end, Description = "Del tools all"}
+Commands["SpeedAllPlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.WalkSpeed = 50 end end end, Description = "Speed all 50"}
+Commands["NormalSpeedAll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.WalkSpeed = 16 end end end, Description = "Normal speed all"}
+Commands["JumpPowerAll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.JumpPower = 100 end end end, Description = "Jump all 100"}
+Commands["RemoveNametags"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character and p.Character:FindFirstChild("Head") then for _,v in pairs(p.Character.Head:GetChildren()) do if v:IsA("BillboardGui") then v:Destroy() end end end end end, Description = "Del tags"}
+Commands["InvisibleAll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then for _,v in pairs(p.Character:GetDescendants()) do if v:IsA("BasePart") then v.Transparency = 1 end end end end end, Description = "Invis all"}
+Commands["VisibleAll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then for _,v in pairs(p.Character:GetDescendants()) do if v:IsA("BasePart") then v.Transparency = 0 end end end end end, Description = "Vis all"}
+Commands["RespawnAll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do p:LoadCharacter() end end, Description = "Respawn all"}
+Commands["StopAll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.WalkSpeed = 0 end end end, Description = "Stop all"}
+Commands["TeleportToMe"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer and p.Character then p.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame end end end, Description = "Tp all to me"}
+Commands["DisableRagdoll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.BreakJointsOnDeath = false end end end, Description = "No ragdoll all"}
+Commands["EnableRagdoll"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do if p.Character then p.Character.Humanoid.BreakJointsOnDeath = true end end end, Description = "Ragdoll all"}
+Commands["RemoveAllDecals"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Decal") then v:Destroy() end end end, Description = "Del all decals"}
 Commands["unRun"] = { Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = _G.PrevWalkSpeed or 16 end, Description = "Revert to previous speed" }
 Commands["ResetSpeed"] = { Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed" }
 Commands["Jumppower"] = { Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power" }
