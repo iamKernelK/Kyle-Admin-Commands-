@@ -42,6 +42,46 @@ Commands["Calc"] = { Action = function(e) local s, r = pcall(function() return l
 Commands["unRun"] = { Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = _G.PrevWalkSpeed or 16 end, Description = "Revert to previous speed" }
 Commands["ResetSpeed"] = { Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed" }
 Commands["Jumppower"] = { Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power" }
+Commands["CamFix"] = {Action = function() workspace.CurrentCamera.CameraType = Enum.CameraType.Custom end, Description = "Fix Camera"}
+Commands["CamLock"] = {Action = function() workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable end, Description = "Lock Camera"}
+Commands["Fov100"] = {Action = function() workspace.CurrentCamera.FieldOfView = 100 end, Description = "Fov 100"}
+Commands["Fov50"] = {Action = function() workspace.CurrentCamera.FieldOfView = 50 end, Description = "Fov 50"}
+Commands["Shake"] = {Action = function() workspace.CurrentCamera.CFrame *= CFrame.new(0.5, 0.5, 0.5) end, Description = "Shake Cam"}
+Commands["AmbientRed"] = {Action = function() Lighting.Ambient = Color3.new(1, 0, 0) end, Description = "Red Ambient"}
+Commands["AmbientBlue"] = {Action = function() Lighting.Ambient = Color3.new(0, 0, 1) end, Description = "Blue Ambient"}
+Commands["AmbientGreen"] = {Action = function() Lighting.Ambient = Color3.new(0, 1, 0) end, Description = "Green Ambient"}
+Commands["AmbientReset"] = {Action = function() Lighting.Ambient = Color3.new(0.5, 0.5, 0.5) end, Description = "Reset Ambient"}
+Commands["BrightLow"] = {Action = function() Lighting.Brightness = 0 end, Description = "Brightness 0"}
+Commands["BrightHigh"] = {Action = function() Lighting.Brightness = 10 end, Description = "Brightness 10"}
+Commands["NoWater"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Water") then v.Enabled = false end end end, Description = "Disable Water"}
+Commands["Wireframe"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.Glass end end end, Description = "Glass Material"}
+Commands["NeonMode"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.Neon end end end, Description = "Neon All"}
+Commands["ClearDecals"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Decal") then v:Destroy() end end end, Description = "Clear Decals"}
+Commands["ClearSounds"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Sound") then v:Stop() end end end, Description = "Stop All Sounds"}
+Commands["DeleteParts"] = {Action = function() for _,v in pairs(workspace:GetChildren()) do if v:IsA("Part") then v:Destroy() end end end, Description = "Delete Parts"}
+Commands["RemoveUI"] = {Action = function() LocalPlayer.PlayerGui:ClearAllChildren() end, Description = "Clear UI"}
+Commands["HideChat"] = {Action = function() game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false) end, Description = "Hide Chat"}
+Commands["ShowChat"] = {Action = function() game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true) end, Description = "Show Chat"}
+Commands["MutePlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do p.AudioEnabled = false end end, Description = "Mute Players"}
+Commands["UnmutePlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do p.AudioEnabled = true end end, Description = "Unmute Players"}
+Commands["StopAnims"] = {Action = function() for _,v in pairs(LocalPlayer.Character.Humanoid:GetPlayingAnimationTracks()) do v:Stop() end end, Description = "Stop Animations"}
+Commands["SavePos"] = {Action = function() ActiveStates.SavedPos = LocalPlayer.Character.HumanoidRootPart.CFrame end, Description = "Save Position"}
+Commands["LoadPos"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.CFrame = ActiveStates.SavedPos end, Description = "Load Position"}
+Commands["PrintParts"] = {Action = function() print(#workspace:GetDescendants()) end, Description = "Count Parts"}
+Commands["PrintPlayers"] = {Action = function() print(#Players:GetPlayers()) end, Description = "Count Players"}
+Commands["KillScript"] = {Action = function() script:Destroy() end, Description = "Destroy Script"}
+Commands["AntiRagdoll"] = {Action = function() LocalPlayer.Character.Humanoid.BreakJointsOnDeath = false end, Description = "Anti Ragdoll"}
+Commands["FixLag"] = {Action = function() settings().Rendering.QualityLevel = 1; workspace.Terrain.WaterWaveSize = 0 end, Description = "Fix Lag"}
+Commands["SpinCamY"] = {Action = function() workspace.CurrentCamera.CFrame *= CFrame.fromEulerAnglesXYZ(0, 0.5, 0) end, Description = "Rotate Cam Y"}
+Commands["SpinCamX"] = {Action = function() workspace.CurrentCamera.CFrame *= CFrame.fromEulerAnglesXYZ(0.5, 0, 0) end, Description = "Rotate Cam X"}
+Commands["ResetGravity"] = {Action = function() workspace.Gravity = 196.2 end, Description = "Reset Gravity"}
+Commands["LowGravity"] = {Action = function() workspace.Gravity = 50 end, Description = "Low Gravity"}
+Commands["HighGravity"] = {Action = function() workspace.Gravity = 500 end, Description = "High Gravity"}
+Commands["DisableInputs"] = {Action = function() UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter end, Description = "Lock Input"}
+Commands["EnableInputs"] = {Action = function() UserInputService.MouseBehavior = Enum.MouseBehavior.Default end, Description = "Unlock Input"}
+Commands["CopyJobId"] = {Action = function() setclipboard(game.JobId) end, Description = "Copy JobId"}
+Commands["CopyPlaceVersion"] = {Action = function() setclipboard(tostring(game.PlaceVersion)) end, Description = "Copy Version"}
+Commands["CopyAccountAge"] = {Action = function() setclipboard(tostring(LocalPlayer.AccountAge)) end, Description = "Copy Account Age"}
 Commands["ResetJumpPower"] = { Action = function() LocalPlayer.Character.Humanoid.JumpPower = 50 end, Description = "Reset jump power" }
 Commands["Infjump"] = { Action = function() ActiveStates.Infjump = true; UserInputService.JumpRequest:Connect(function() if ActiveStates.Infjump then LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end end) end, Description = "Enable infinite jump" }
 Commands["unInfjump"] = { Action = function() ActiveStates.Infjump = false end, Description = "Disable infinite jump" }
