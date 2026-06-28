@@ -13,7 +13,6 @@ local lastJump=0
 Commands["Speed"] = {Action = function(v) LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(v) or 16 end, Description = "Change walk speed"}
 Commands["ResetSpeed"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed"}
 Commands["Cmds"]={Action=function() if not KyleUI then local Guis=loadstring(game:HttpGet("https://raw.githubusercontent.com/iamKernelK/Kyle-Admin-Commands-/refs/heads/main/Kyle/Guis/Cmds.lua"))() KyleUI=Guis.CreateCmdsUI() end KyleUI.Enabled=not KyleUI.Enabled end,Description="Toggle UI"}
-Commands["cc"]={Action=function() local c=0 for _ in pairs(Commands) do c=c+1 end game:GetService("StarterGui"):SetCore("SendNotification",{Title="Kyle Admin",Text="Total Commands: "..c,Duration=5}) end,Description="Check total command count"}
 Commands["Fly"] = {
     Action = function()
         local p = game:GetService("Players").LocalPlayer
@@ -22,63 +21,108 @@ Commands["Fly"] = {
         
         if _G.KyleFlyStop then _G.KyleFlyStop() end
         
-        local flying, speed = false, 50
-        local bv, bg
+        local flying = false
+        
+        local function stopFly()
+            flying = false
+            if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+            pcall(function()
+                local char = p.Character
+                if char then
+                    local h = char:FindFirstChildOfClass("Humanoid")
+                    local rp = char:FindFirstChild("HumanoidRootPart")
+                    if h then h.PlatformStand = false end
+                    if rp and rp:FindFirstChild("FlyBV") then rp.FlyBV:Destroy() end
+                    if rp and rp:FindFirstChild("FlyBG") then rp.FlyBG:Destroy() end
+                end
+            end)
+        end
         
         local function toggleFly()
             flying = not flying
-            local char = p.Character
-            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-            local hrp = char.HumanoidRootPart
             
             if flying then
-                char.Humanoid.PlatformStand = true
-                bv = Instance.new("BodyVelocity", hrp)
-                bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-                bg = Instance.new("BodyGyro", hrp)
-                bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.P = 9e4
-                
-                _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
-                    local cam = workspace.CurrentCamera
-                    local md = char.Humanoid.MoveDirection
-                    if md.Magnitude > 0 then
-                        bv.Velocity = Vector3.new(md.X, cam.CFrame.LookVector.Y * md.Magnitude, md.Z).Unit * speed
-                        bg.CFrame = CFrame.new(hrp.Position, hrp.Position + bv.Velocity)
-                    else
-                        bv.Velocity = Vector3.new(0, 0, 0)
-                        bg.CFrame = cam.CFrame
-                    end
+                pcall(function()
+                    local char = p.Character
+                    local rp = char:FindFirstChild("HumanoidRootPart")
+                    
+                    if rp:FindFirstChild("FlyBV") then rp.FlyBV:Destroy() end
+                    if rp:FindFirstChild("FlyBG") then rp.FlyBG:Destroy() end
+                    
+                    local bv = Instance.new("BodyVelocity", rp)
+                    bv.Name = "FlyBV"
+                    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                    bv.Velocity = Vector3.zero
+                    
+                    local bg = Instance.new("BodyGyro", rp)
+                    bg.Name = "FlyBG"
+                    bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                    bg.P = 9e4
+                    bg.CFrame = rp.CFrame
+                    
+                    if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+                    _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
+                        pcall(function()
+                            local c = p.Character
+                            local ch = c:FindFirstChildOfClass("Humanoid")
+                            local crp = c:FindFirstChild("HumanoidRootPart")
+                            if not ch or not crp or not crp:FindFirstChild("FlyBV") then return end
+                            
+                            ch.PlatformStand = true
+                            
+                            local cam = workspace.CurrentCamera
+                            local md = ch.MoveDirection
+                            local speed = 50
+                            
+                            if md.Magnitude > 0 then
+                                local look = cam.CFrame.LookVector
+                                local flatLook = Vector3.new(look.X, 0, look.Z)
+                                local flyDir = md
+                                if flatLook.Magnitude > 0.001 then
+                                    local forwardAmount = flatLook.Unit:Dot(md)
+                                    flyDir = Vector3.new(md.X, look.Y * forwardAmount, md.Z).Unit
+                                end
+                                crp.FlyBV.Velocity = flyDir * speed
+                                crp.FlyBG.CFrame = CFrame.lookAt(crp.Position, crp.Position + flyDir)
+                            else
+                                crp.FlyBV.Velocity = Vector3.zero
+                                crp.FlyBG.CFrame = cam.CFrame
+                            end
+                        end)
+                    end)
                 end)
             else
-                char.Humanoid.PlatformStand = false
-                if bv then bv:Destroy() end
-                if bg then bg:Destroy() end
-                if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+                stopFly()
             end
             
-            local gui = p.PlayerGui:FindFirstChild("KyleFlyGUI")
-            if gui and gui:FindFirstChild("FlyToggle") then
-                gui.FlyToggle.Text = flying and "Unfly" or "Fly"
-                gui.FlyToggle.BackgroundColor3 = flying and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 40, 40)
-            end
+            pcall(function()
+                local gui = p.PlayerGui:FindFirstChild("KyleFlyGUI")
+                if gui and gui:FindFirstChild("FlyToggle") then
+                    gui.FlyToggle.Text = flying and "Unfly" or "Fly"
+                    gui.FlyToggle.BackgroundColor3 = flying and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 40, 40)
+                end
+            end)
         end
 
         if uis.TouchEnabled and not uis.KeyboardEnabled then
-            local sg = Instance.new("ScreenGui", p.PlayerGui)
-            sg.Name = "KyleFlyGUI"
-            local btn = Instance.new("TextButton", sg)
-            btn.Name = "FlyToggle"
-            btn.Size = UDim2.new(0, 60, 0, 60)
-            btn.Position = UDim2.new(1, -80, 0.5, -30)
-            btn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
-            btn.Text = "Fly"
-            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            btn.Font = Enum.Font.GothamBold
-            btn.TextScaled = true
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
-            Instance.new("UIStroke", btn).Thickness = 2
-            btn.MouseButton1Click:Connect(toggleFly)
+            pcall(function()
+                if p.PlayerGui:FindFirstChild("KyleFlyGUI") then p.PlayerGui.KyleFlyGUI:Destroy() end
+                local sg = Instance.new("ScreenGui", p.PlayerGui)
+                sg.Name = "KyleFlyGUI"
+                sg.ResetOnSpawn = false
+                local btn = Instance.new("TextButton", sg)
+                btn.Name = "FlyToggle"
+                btn.Size = UDim2.new(0, 60, 0, 60)
+                btn.Position = UDim2.new(1, -80, 0.5, -30)
+                btn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+                btn.Text = "Fly"
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                btn.Font = Enum.Font.GothamBold
+                btn.TextScaled = true
+                Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+                Instance.new("UIStroke", btn).Thickness = 2
+                btn.MouseButton1Click:Connect(toggleFly)
+            end)
         else
             _G.KyleFlyKey = uis.InputBegan:Connect(function(input, gp)
                 if not gp and input.KeyCode == Enum.KeyCode.F then toggleFly() end
@@ -86,9 +130,9 @@ Commands["Fly"] = {
         end
         
         _G.KyleFlyStop = function()
-            flying = true; toggleFly() 
+            stopFly()
             if _G.KyleFlyKey then _G.KyleFlyKey:Disconnect() end
-            if p.PlayerGui:FindFirstChild("KyleFlyGUI") then p.PlayerGui.KyleFlyGUI:Destroy() end
+            pcall(function() if p.PlayerGui:FindFirstChild("KyleFlyGUI") then p.PlayerGui.KyleFlyGUI:Destroy() end end)
             _G.KyleFlyStop = nil
         end
     end,
@@ -102,6 +146,7 @@ Commands["UnFly"] = {
     Description = "Remove Fly System"
 }
 
+Commands["cc"]={Action=function() local c=0 for _ in pairs(Commands) do c=c+1 end game:GetService("StarterGui"):SetCore("SendNotification",{Title="Kyle Admin",Text="Total Commands: "..c,Duration=5}) end,Description="Check total command count"}
 Commands["AirWalk"]={Action=function() ActiveStates.AirWalk=not ActiveStates.AirWalk; if ActiveStates.AirWalk then local p=Instance.new("Part",workspace); p.Name="AdminAirWalk"; p.Size=Vector3.new(5,1,5); p.Anchored=true; p.Transparency=1; task.spawn(function() while ActiveStates.AirWalk and task.wait() do if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then p.CFrame=LocalPlayer.Character.HumanoidRootPart.CFrame*CFrame.new(0,-3.5,0) end end; p:Destroy() end) else ActiveStates.AirWalk=false end end,Description="Toggle AirWalk"}
 Commands["unHitbox"]={Action=function() for _,p in pairs(Players:GetPlayers()) do if p~=LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then p.Character.HumanoidRootPart.Size=Vector3.new(2,2,1); p.Character.HumanoidRootPart.Transparency=1 end end end,Description="Reset Hitboxes"}
 Commands["unClicktp"]={Action=function() ActiveStates.ClickTp=false end,Description="Disable ClickTp"}
