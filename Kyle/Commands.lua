@@ -119,10 +119,107 @@ Commands["Shadows"] = {Action = function() Lighting.GlobalShadows = true end, De
 Commands["Blur"] = {Action = function() Instance.new("BlurEffect", Lighting).Name = "Cust" end, Description = "Add blur"}
 Commands["Unblur"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v.Name == "Cust" then v:Destroy() end end end, Description = "Remove blur"}
 Commands["Bloom"] = {Action = function() Instance.new("BloomEffect", Lighting).Name = "Cust" end, Description = "Add bloom"}
+
 Commands["Unbloom"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v.Name == "Cust" then v:Destroy() end end end, Description = "Remove bloom"}
 Commands["Sunrays"] = {Action = function() Instance.new("SunRaysEffect", Lighting).Name = "Cust" end, Description = "Add sunrays"}
 Commands["Unsunrays"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v.Name == "Cust" then v:Destroy() end end end, Description = "Remove sunrays"}
-
+Commands["AntiRagdoll"] = {Action = function() LocalPlayer.Character.Humanoid.BreakJointsOnDeath = false end, Description = "Anti ragdoll"}
+Commands["NoPhysics"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end, Description = "No collide"}
+Commands["FullPhysics"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = true end end end, Description = "Full collide"}
+Commands["ToggleArch"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = not LocalPlayer.Character.HumanoidRootPart.Anchored end, Description = "Toggle anchor"}
+Commands["BreakJoints"] = {Action = function() LocalPlayer.Character:BreakJoints() end, Description = "Break joints"}
+Commands["ResetRig"] = {Action = function() LocalPlayer.Character.Humanoid:BuildRigFromAttachments() end, Description = "Rebuild rig"}
+Commands["WalkSpeedAuto"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 25 end, Description = "Set ws 25"}
+Commands["JumpPowerAuto"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 75 end, Description = "Set jp 75"}
+Commands["RemoveTrails"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("Trail") then v:Destroy() end end end, Description = "Del trails"}
+Commands["RemoveFire"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("Fire") then v:Destroy() end end end, Description = "Del fire"}
+Commands["RemoveSmoke"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("Smoke") then v:Destroy() end end end, Description = "Del smoke"}
+Commands["RemoveSparkles"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("Sparkles") then v:Destroy() end end end, Description = "Del sparkles"}
+Commands["ShowFPS"] = {Action = function() game:GetService("Stats"):GetFrameTime() end, Description = "Show stats"}
+Commands["SetHighPriority"] = {Action = function() settings().Physics.PhysicsEnvironmentalThrottle = Enum.EnviromentalPhysicsThrottle.Disabled end, Description = "High physics"}
+Commands["RemoveFog"] = {Action = function() Lighting.FogStart = 9e9; Lighting.FogEnd = 9e9 end, Description = "Clear fog"}
+Commands["SunSet"] = {Action = function() Lighting.TimeOfDay = "18:00:00" end, Description = "Sunset"}
+Commands["SunRise"] = {Action = function() Lighting.TimeOfDay = "06:00:00" end, Description = "Sunrise"}
+Commands["DisableBlur"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v:IsA("BlurEffect") then v.Enabled = false end end end, Description = "Disable blur"}
+Commands["EnableBlur"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v:IsA("BlurEffect") then v.Enabled = true end end end, Description = "Enable blur"}
+Commands["AutoRotate"] = {Action = function() LocalPlayer.Character.Humanoid.AutoRotate = true end, Description = "Enable rot"}
+Commands["StopRotate"] = {Action = function() LocalPlayer.Character.Humanoid.AutoRotate = false end, Description = "Disable rot"}
+Commands["SaveConfig"] = {Action = function() setclipboard(game:GetService("HttpService"):JSONEncode(ActiveStates)) end, Description = "Copy config"}
+Commands["ClearBackpack"] = {Action = function() LocalPlayer.Backpack:ClearAllChildren() end, Description = "Clear backpack"}
+Commands["RemoveHead"] = {Action = function() LocalPlayer.Character.Head.Transparency = 1; LocalPlayer.Character.Head.CanCollide = false end, Description = "Hide head"}
+Commands["ShowHead"] = {Action = function() LocalPlayer.Character.Head.Transparency = 0; LocalPlayer.Character.Head.CanCollide = true end, Description = "Show head"}
+Commands["ScaleSmall"] = {Action = function() LocalPlayer.Character.Humanoid:FindFirstChild("BodyWidthScale").Value = 0.5 end, Description = "Scale small"}
+Commands["ScaleNormal"] = {Action = function() LocalPlayer.Character.Humanoid:FindFirstChild("BodyWidthScale").Value = 1 end, Description = "Scale normal"}
+Commands["DeleteParticles"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("ParticleEmitter") then v:Destroy() end end end, Description = "Del particles"}
+Commands["DeleteSounds"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Sound") then v:Stop() end end end, Description = "Del sounds"}
+Commands["AntiVoid"] = {Action = function() local p = Instance.new("Part", workspace); p.Size = Vector3.new(9999,1,9999); p.Position = Vector3.new(0,-10,0); p.Anchored = true end, Description = "Anti void"}
+Commands["RemoveDecals"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Decal") then v:Destroy() end end end, Description = "Del decals"}
+Commands["RemoveTextures"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Texture") then v:Destroy() end end end, Description = "Del textures"}
+Commands["RemoveBeams"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Beam") then v:Destroy() end end end, Description = "Del beams"}
+Commands["HideUI"] = {Action = function() LocalPlayer.PlayerGui.Enabled = false end, Description = "Hide UI"}
+Commands["ShowUI"] = {Action = function() LocalPlayer.PlayerGui.Enabled = true end, Description = "Show UI"}
+Commands["Speed25"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 25 end, Description = "Speed 25"}
+Commands["Speed50"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 50 end, Description = "Speed 50"}
+Commands["Speed100"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 100 end, Description = "Speed 100"}
+Commands["Jump75"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 75 end, Description = "Jump 75"}
+Commands["Jump150"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 150 end, Description = "Jump 150"}
+Commands["AmbientDark"] = {Action = function() Lighting.Ambient = Color3.fromRGB(0,0,0) end, Description = "Dark ambient"}
+Commands["AmbientLight"] = {Action = function() Lighting.Ambient = Color3.fromRGB(255,255,255) end, Description = "Light ambient"}
+Commands["Bright0"] = {Action = function() Lighting.Brightness = 0 end, Description = "Bright 0"}
+Commands["Bright5"] = {Action = function() Lighting.Brightness = 5 end, Description = "Bright 5"}
+Commands["Bright10"] = {Action = function() Lighting.Brightness = 10 end, Description = "Bright 10"}
+Commands["RemoveSun"] = {Action = function() Lighting.SunRays.Enabled = false end, Description = "Del sun"}
+Commands["AddSun"] = {Action = function() Lighting.SunRays.Enabled = true end, Description = "Add sun"}
+Commands["CameraFixed"] = {Action = function() workspace.CurrentCamera.CameraType = Enum.CameraType.Fixed end, Description = "Cam fixed"}
+Commands["CameraCustom"] = {Action = function() workspace.CurrentCamera.CameraType = Enum.CameraType.Custom end, Description = "Cam custom"}
+Commands["Fov90"] = {Action = function() workspace.CurrentCamera.FieldOfView = 90 end, Description = "Fov 90"}
+Commands["Fov120"] = {Action = function() workspace.CurrentCamera.FieldOfView = 120 end, Description = "Fov 120"}
+Commands["FullGravity"] = {Action = function() workspace.Gravity = 196 end, Description = "Gravity 196"}
+Commands["ZeroGravity"] = {Action = function() workspace.Gravity = 0 end, Description = "Gravity 0"}
+Commands["ToggleSky"] = {Action = function() Lighting.Sky.Enabled = not Lighting.Sky.Enabled end, Description = "Toggle sky"}
+Commands["RemoveHat"] = {Action = function() for _,v in pairs(LocalPlayer.Character:GetChildren()) do if v:IsA("Accessory") then v:Destroy() end end end, Description = "Del hats"}
+Commands["HideName"] = {Action = function() LocalPlayer.Character.Head.NameTag.Enabled = false end, Description = "Hide name"}
+Commands["ShowName"] = {Action = function() LocalPlayer.Character.Head.NameTag.Enabled = true end, Description = "Show name"}
+Commands["FreezePos"] = {Action = function() ActiveStates.Pos = LocalPlayer.Character.HumanoidRootPart.Position; RunService.Heartbeat:Connect(function() LocalPlayer.Character.HumanoidRootPart.Position = ActiveStates.Pos end) end, Description = "Freeze pos"}
+Commands["UnfreezePos"] = {Action = function() ActiveStates.Pos = nil end, Description = "Unfreeze pos"}
+Commands["TpSpawn"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0,50,0) end, Description = "Tp spawn"}
+Commands["RandomTeleport"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(math.random(-500,500), 50, math.random(-500,500)) end, Description = "Tp random"}
+Commands["ListPlayers"] = {Action = function() for _,p in pairs(Players:GetPlayers()) do print(p.Name) end end, Description = "List players"}
+Commands["CopyUserId"] = {Action = function() setclipboard(tostring(LocalPlayer.UserId)) end, Description = "Copy userid"}
+Commands["CopyAccountAge"] = {Action = function() setclipboard(tostring(LocalPlayer.AccountAge)) end, Description = "Copy age"}
+Commands["AntiChat"] = {Action = function() game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false) end, Description = "Del chat"}
+Commands["EnableChat"] = {Action = function() game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true) end, Description = "Add chat"}
+Commands["ShowGui"] = {Action = function() game:GetService("CoreGui").Enabled = true end, Description = "Show gui"}
+Commands["HideGui"] = {Action = function() game:GetService("CoreGui").Enabled = false end, Description = "Hide gui"}
+Commands["RejoinServer"] = {Action = function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end, Description = "Rejoin"}
+Commands["PrintVersion"] = {Action = function() print(game.PlaceVersion) end, Description = "Print ver"}
+Commands["PrintGameId"] = {Action = function() print(game.GameId) end, Description = "Print gameid"}
+Commands["PrintJobId"] = {Action = function() print(game.JobId) end, Description = "Print jobid"}
+Commands["FixLag"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("BasePart") then v.Material = Enum.Material.Plastic end end end, Description = "Fix lag"}
+Commands["RemoveAllSounds"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Sound") then v:Destroy() end end end, Description = "Del sounds"}
+Commands["RemoveAllLights"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Light") then v:Destroy() end end end, Description = "Del lights"}
+Commands["DisableShadows"] = {Action = function() Lighting.GlobalShadows = false end, Description = "No shadows"}
+Commands["EnableShadows"] = {Action = function() Lighting.GlobalShadows = true end, Description = "Yes shadows"}
+Commands["ToggleVoxel"] = {Action = function() Lighting.Technology = Enum.Technology.Voxel end, Description = "Voxel mode"}
+Commands["ToggleFuture"] = {Action = function() Lighting.Technology = Enum.Technology.Future end, Description = "Future mode"}
+Commands["SaveCamera"] = {Action = function() ActiveStates.CamCFrame = workspace.CurrentCamera.CFrame end, Description = "Save cam"}
+Commands["LoadCamera"] = {Action = function() workspace.CurrentCamera.CFrame = ActiveStates.CamCFrame end, Description = "Load cam"}
+Commands["MuteMusic"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Sound") and v.Name == "Music" then v:Stop() end end end, Description = "Stop music"}
+Commands["UnmuteMusic"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("Sound") and v.Name == "Music" then v:Play() end end end, Description = "Play music"}
+Commands["SpeedToggle"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = (LocalPlayer.Character.Humanoid.WalkSpeed == 16 and 50 or 16) end, Description = "Toggle speed"}
+Commands["JumpToggle"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = (LocalPlayer.Character.Humanoid.JumpPower == 50 and 150 or 50) end, Description = "Toggle jump"}
+Commands["SitToggle"] = {Action = function() LocalPlayer.Character.Humanoid.Sit = not LocalPlayer.Character.Humanoid.Sit end, Description = "Toggle sit"}
+Commands["AnchorToggle"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = not LocalPlayer.Character.HumanoidRootPart.Anchored end, Description = "Toggle anchor"}
+Commands["InvisibleToggle"] = {Action = function() for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = (p.Transparency == 0 and 1 or 0) end end end, Description = "Toggle invis"}
+Commands["CollideToggle"] = {Action = function() for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = not p.CanCollide end end end, Description = "Toggle collide"}
+Commands["HighJump"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 200 end, Description = "Jump 200"}
+Commands["SuperSpeed"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 200 end, Description = "Speed 200"}
+Commands["NormalSpeed"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Speed 16"}
+Commands["NormalJump"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 50 end, Description = "Jump 50"}
+Commands["CopyCFrame"] = {Action = function() setclipboard(tostring(LocalPlayer.Character.HumanoidRootPart.CFrame)) end, Description = "Copy pos"}
+Commands["CopyName"] = {Action = function() setclipboard(LocalPlayer.Name) end, Description = "Copy name"}
+Commands["CopyDisplayName"] = {Action = function() setclipboard(LocalPlayer.DisplayName) end, Description = "Copy display"}
+Commands["CopyUserId"] = {Action = function() setclipboard(tostring(LocalPlayer.UserId)) end, Description = "Copy id"}
 -- Scripts/Hubs
 Commands["Dex"] = {Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Load Dex"}
 Commands["DarkDex"] = {Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))() end, Description = "Load DarkDex"}
