@@ -111,16 +111,100 @@ Commands["Fly"] = {
                 sg.Name = "KyleFlyGUI"
                 sg.ResetOnSpawn = false
                 local btn = Instance.new("TextButton", sg)
-                btn.Name = "FlyToggle"
-                btn.Size = UDim2.new(0, 60, 0, 60)
-                btn.Position = UDim2.new(1, -80, 0.5, -30)
-                btn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
-                btn.Text = "Fly"
-                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                btn.Font = Enum.Font.GothamBold
-                btn.TextScaled = true
+
+Commands["cc"]={Action=function() local c=0 for _ in pairs(Commands) do c=c+1 end game:GetService("StarterGui"):SetCore("SendNotification",{Title="Kyle Admin",Text="Total Commands: "..c,Duration=5}) end,Description="Check total command count"}
+Commands["AirWalk"]={Action=function() ActiveStates.AirWalk=not ActiveStates.AirWalk; if ActiveStates.AirWalk then local p=Instance.new("Part",workspace); p.Name="AdminAirWalk"; p.Size=Vector3.new(5,1,5); p.Anchored=true; p.Transparency=1; task.spawn(function() while ActiveStates.AirWalk and task.wait() do if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then p.CFrame=LocalPlayer.Character.HumanoidRootPart.CFrame*CFrame.new(0,-3.5,0) end end; p:Destroy() end) else ActiveStates.AirWalk=false end end,Description="Toggle AirWalk"}
+Commands["unHitbox"]={Action=function() for _,p in pairs(Players:GetPlayers()) do if p~=LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then p.Character.HumanoidRootPart.Size=Vector3.new(2,2,1); p.Character.HumanoidRootPart.Transparency=1 end end end,Description="Reset Hitboxes"}
+Commands["unClicktp"]={Action=function() ActiveStates.ClickTp=false end,Description="Disable ClickTp"}
+Commands["Infjump"]={Action=function() ActiveStates.Infjump=true; UserInputService.JumpRequest:Connect(function() if ActiveStates.Infjump and tick()-lastJump>=0.2 then lastJump=tick(); LocalPlayer.Character.Humanoid:ChangeState("Jumping") end end) end,Description="Infjump with 0.2s cooldown"}
+Commands["unInfjump"]={Action=function() ActiveStates.Infjump=false end,Description="Disable Infjump"}
+Commands["tto"]={Args="Player",Action=function(n) local t=Players:FindFirstChild(n); if t and t.Character and t.Character:FindFirstChild("HumanoidRootPart") then local hrp=LocalPlayer.Character.HumanoidRootPart; local dist=(hrp.Position-t.Character.HumanoidRootPart.Position).Magnitude; local tween=TweenService:Create(hrp,TweenInfo.new(dist/GlobalTweenSpeed,Enum.EasingStyle.Linear),{CFrame=t.Character.HumanoidRootPart.CFrame}); tween:Play() end end,Description="Tween TP to player"}
+Commands["TweenSpeed"]={Args="Speed",Action=function(v) GlobalTweenSpeed=tonumber(v) or 150 end,Description="Set TweenSpeed"}
+Commands["AntiVoid2"] = {Action = function() game.Workspace.FallenPartsDestroyHeight = -999999 end, Description = "Prevent death in void"}
+Commands["Explode"] = {Action = function() Instance.new("Explosion", game.Players.LocalPlayer.Character.HumanoidRootPart) end, Description = "Explode yourself"}
+
+-- Add this to your Commands table
+Commands["Fly"] = {
+    Action = function()
+        local p = game:GetService("Players").LocalPlayer
+        local uis = game:GetService("UserInputService")
+        local rs = game:GetService("RunService")
+        
+        if _G.KyleFlyStop then _G.KyleFlyStop() end
+        
+        local flying = false
+        local speed = 50 -- يمكنك تغيير السرعة من هنا
+        
+        local function stopFly()
+            flying = false
+            if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+            pcall(function()
+                local char = p.Character
+                if char then
+                    local h = char:FindFirstChildOfClass("Humanoid")
+                    local rp = char:FindFirstChild("HumanoidRootPart")
+                    if h then h.PlatformStand = false end
+                    if rp and rp:FindFirstChild("FlyBV") then rp.FlyBV:Destroy() end
+                    if rp and rp:FindFirstChild("FlyBG") then rp.FlyBG:Destroy() end
+                end
+            end)
+        end
+        
+        local function toggleFly()
+            flying = not flying
+            
+            if flying then
+                pcall(function()
+                    local char = p.Character
+                    local rp = char:FindFirstChild("HumanoidRootPart")
+                    
+                    local bv = Instance.new("BodyVelocity", rp); bv.Name = "FlyBV"
+                    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Velocity = Vector3.zero
+                    
+                    local bg = Instance.new("BodyGyro", rp); bg.Name = "FlyBG"
+                    bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9); bg.P = 1e4
+                    bg.CFrame = rp.CFrame
+                    
+                    if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+                    _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
+                        pcall(function()
+                            local c = p.Character
+                            local h = c:FindFirstChildOfClass("Humanoid")
+                            local crp = c:FindFirstChild("HumanoidRootPart")
+                            if not crp or not crp:FindFirstChild("FlyBV") then return end
+                            
+                            h.PlatformStand = true
+                            local cam = workspace.CurrentCamera
+                            -- الطيران يعتمد على اتجاه الكاميرا (LookVector)
+                            crp.FlyBV.Velocity = cam.CFrame.LookVector * speed
+                            crp.FlyBG.CFrame = cam.CFrame
+                        end)
+                    end)
+                end)
+            else
+                stopFly()
+            end
+            
+            -- تحديث الزر في الهاتف
+            pcall(function()
+                local gui = p.PlayerGui:FindFirstChild("KyleFlyGUI")
+                if gui and gui:FindFirstChild("FlyToggle") then
+                    gui.FlyToggle.Text = flying and "Unfly" or "Fly"
+                    gui.FlyToggle.BackgroundColor3 = flying and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 40, 40)
+                end
+            end)
+        end
+
+        -- نظام الجوال (زر) والـ PC (حرف F)
+        if uis.TouchEnabled and not uis.KeyboardEnabled then
+            pcall(function()
+                if p.PlayerGui:FindFirstChild("KyleFlyGUI") then p.PlayerGui.KyleFlyGUI:Destroy() end
+                local sg = Instance.new("ScreenGui", p.PlayerGui); sg.Name = "KyleFlyGUI"; sg.ResetOnSpawn = false
+                local btn = Instance.new("TextButton", sg); btn.Name = "FlyToggle"
+                btn.Size = UDim2.new(0, 60, 0, 60); btn.Position = UDim2.new(1, -80, 0.5, -30)
+                btn.BackgroundColor3 = Color3.fromRGB(200, 40, 40); btn.Text = "Fly"
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = Enum.Font.GothamBold; btn.TextScaled = true
                 Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
-                Instance.new("UIStroke", btn).Thickness = 2
                 btn.MouseButton1Click:Connect(toggleFly)
             end)
         else
@@ -135,42 +219,16 @@ Commands["Fly"] = {
             pcall(function() if p.PlayerGui:FindFirstChild("KyleFlyGUI") then p.PlayerGui.KyleFlyGUI:Destroy() end end)
             _G.KyleFlyStop = nil
         end
-    end,
-    Description = "Smart Fly System"
+    end
 }
 
 Commands["UnFly"] = {
     Action = function()
         if _G.KyleFlyStop then _G.KyleFlyStop() end
-    end,
-    Description = "Remove Fly System"
-}
-
-Commands["cc"]={Action=function() local c=0 for _ in pairs(Commands) do c=c+1 end game:GetService("StarterGui"):SetCore("SendNotification",{Title="Kyle Admin",Text="Total Commands: "..c,Duration=5}) end,Description="Check total command count"}
-Commands["AirWalk"]={Action=function() ActiveStates.AirWalk=not ActiveStates.AirWalk; if ActiveStates.AirWalk then local p=Instance.new("Part",workspace); p.Name="AdminAirWalk"; p.Size=Vector3.new(5,1,5); p.Anchored=true; p.Transparency=1; task.spawn(function() while ActiveStates.AirWalk and task.wait() do if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then p.CFrame=LocalPlayer.Character.HumanoidRootPart.CFrame*CFrame.new(0,-3.5,0) end end; p:Destroy() end) else ActiveStates.AirWalk=false end end,Description="Toggle AirWalk"}
-Commands["unHitbox"]={Action=function() for _,p in pairs(Players:GetPlayers()) do if p~=LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then p.Character.HumanoidRootPart.Size=Vector3.new(2,2,1); p.Character.HumanoidRootPart.Transparency=1 end end end,Description="Reset Hitboxes"}
-Commands["unClicktp"]={Action=function() ActiveStates.ClickTp=false end,Description="Disable ClickTp"}
-Commands["Infjump"]={Action=function() ActiveStates.Infjump=true; UserInputService.JumpRequest:Connect(function() if ActiveStates.Infjump and tick()-lastJump>=0.2 then lastJump=tick(); LocalPlayer.Character.Humanoid:ChangeState("Jumping") end end) end,Description="Infjump with 0.2s cooldown"}
-Commands["unInfjump"]={Action=function() ActiveStates.Infjump=false end,Description="Disable Infjump"}
-Commands["tto"]={Args="Player",Action=function(n) local t=Players:FindFirstChild(n); if t and t.Character and t.Character:FindFirstChild("HumanoidRootPart") then local hrp=LocalPlayer.Character.HumanoidRootPart; local dist=(hrp.Position-t.Character.HumanoidRootPart.Position).Magnitude; local tween=TweenService:Create(hrp,TweenInfo.new(dist/GlobalTweenSpeed,Enum.EasingStyle.Linear),{CFrame=t.Character.HumanoidRootPart.CFrame}); tween:Play() end end,Description="Tween TP to player"}
-Commands["TweenSpeed"]={Args="Speed",Action=function(v) GlobalTweenSpeed=tonumber(v) or 150 end,Description="Set TweenSpeed"}
-Commands["AntiVoid2"] = {Action = function() game.Workspace.FallenPartsDestroyHeight = -999999 end, Description = "Prevent death in void"}
-Commands["Explode"] = {Action = function() Instance.new("Explosion", game.Players.LocalPlayer.Character.HumanoidRootPart) end, Description = "Explode yourself"}
-
-Commands["AddButton"] = {
-    Args = "Name Cmd ToggleCmd",
-    Action = function(args)
-        local parts = string.split(args, " ")
-        -- Calling the script from your provided GitHub link
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/iamKernelK/Kyle-Admin-Commands-/refs/heads/main/Kyle/Guis/AddButton.lua"))(parts[1], parts[2], parts[3])
-        end)
-    end,
-    Description = "Create a custom button"
-}
-Commands["ab"] = Commands["AddButton"]
-
-
+    end
+                    }
+                    
+                    
 -- Sound Command
 Commands["Sound"] = {Args = "ID", Action = function(id) local s = Instance.new("Sound", workspace); s.SoundId = "rbxassetid://"..id; s:Play() end, Description = "Play sound"}
 
