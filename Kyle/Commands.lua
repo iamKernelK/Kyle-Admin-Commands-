@@ -38,6 +38,7 @@ _G.SavedPos = CFrame.new(0,50,0)
 -- [ 150 Commands List ] --
 
 Commands["Speed"] = { Action = function(v) _G.PrevWalkSpeed = LocalPlayer.Character.Humanoid.WalkSpeed; LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(v) or 16 end, Description = "Change walk speed" }
+Commands["Calc"] = { Action = function(e) local s, r = pcall(function() return loadstring("return " .. e)() end) game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Calculator", Text = s and tostring(r) or "Error"}) end, Description = "Math calculator" }
 Commands["unRun"] = { Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = _G.PrevWalkSpeed or 16 end, Description = "Revert to previous speed" }
 Commands["ResetSpeed"] = { Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed" }
 Commands["Jumppower"] = { Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power" }
