@@ -46,6 +46,58 @@ Commands["ResetJumpPower"] = { Action = function() LocalPlayer.Character.Humanoi
 Commands["Infjump"] = { Action = function() ActiveStates.Infjump = true; UserInputService.JumpRequest:Connect(function() if ActiveStates.Infjump then LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end end) end, Description = "Enable infinite jump" }
 Commands["unInfjump"] = { Action = function() ActiveStates.Infjump = false end, Description = "Disable infinite jump" }
 Commands["Noclip"] = { Action = function() ActiveStates.Noclip = true; RunService.Stepped:Connect(function() if ActiveStates.Noclip and LocalPlayer.Character then for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end end) end, Description = "Enable Noclip" }
+-- Essential Utilities & Info
+Commands["Jobid"] = {Action = function() setclipboard(game.JobId) end, Description = "Copy JobId"}
+Commands["PlaceId"] = {Action = function() setclipboard(tostring(game.PlaceId)) end, Description = "Copy PlaceId"}
+Commands["Name"] = {Action = function() setclipboard(LocalPlayer.Name) end, Description = "Copy Name"}
+Commands["DisplayName"] = {Action = function() setclipboard(LocalPlayer.DisplayName) end, Description = "Copy DisplayName"}
+Commands["Fps"] = {Action = function() print(workspace:GetRealPhysicsFPS()) end, Description = "Show Fps"}
+Commands["Ping"] = {Action = function() print(LocalPlayer:GetNetworkPing()) end, Description = "Show Ping"}
+Commands["Exit"] = {Action = function() game:Shutdown() end, Description = "Exit game"}
+Commands["Rejoin"] = {Action = function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end, Description = "Rejoin"}
+Commands["ServerHop"] = {Action = function() local Http = game:GetService("HttpService"); local r = Http:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public")); TeleportService:TeleportToPlaceInstance(game.PlaceId, r.data[math.random(1,#r.data)].id) end, Description = "Server Hop"}
+Commands["Clear"] = {Action = function() rconsoleclear() end, Description = "Clear console"}
+
+-- God/Character Mods
+Commands["God"] = {Action = function() for _,v in pairs(workspace:GetDescendants()) do if v:IsA("BasePart") and (v.Name:lower():match("kill") or v.Name:lower():match("lava")) then v.CanTouch = false end end end, Description = "God mode (KillBrick disable)"}
+Commands["Fling"] = {Action = function() local b = Instance.new("BodyAngularVelocity", LocalPlayer.Character.HumanoidRootPart); b.AngularVelocity = Vector3.new(9e9,9e9,9e9); b.MaxTorque = Vector3.new(9e9,9e9,9e9) end, Description = "Fling"}
+Commands["Unfling"] = {Action = function() for _,v in pairs(LocalPlayer.Character.HumanoidRootPart:GetChildren()) do if v:IsA("BodyAngularVelocity") then v:Destroy() end end end, Description = "Unfling"}
+Commands["Spin"] = {Action = function() local b = Instance.new("BodyAngularVelocity", LocalPlayer.Character.HumanoidRootPart); b.AngularVelocity = Vector3.new(0,100,0); b.MaxTorque = Vector3.new(0,9e9,0) end, Description = "Spin"}
+Commands["Unspin"] = {Action = function() for _,v in pairs(LocalPlayer.Character.HumanoidRootPart:GetChildren()) do if v:IsA("BodyAngularVelocity") then v:Destroy() end end end, Description = "Unspin"}
+Commands["Ghost"] = {Action = function() for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = 0.5 end end end, Description = "Ghost mode"}
+Commands["Unghost"] = {Action = function() for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = 0 end end end, Description = "Unghost"}
+Commands["BigHead"] = {Action = function() LocalPlayer.Character.Head.Size = Vector3.new(3,3,3) end, Description = "Big head"}
+Commands["SmallHead"] = {Action = function() LocalPlayer.Character.Head.Size = Vector3.new(0.5,0.5,0.5) end, Description = "Small head"}
+Commands["NormalHead"] = {Action = function() LocalPlayer.Character.Head.Size = Vector3.new(1,1,1) end, Description = "Normal head"}
+
+-- Environment/Graphics
+Commands["Fullbright"] = {Action = function() Lighting.Brightness = 2; Lighting.OutdoorAmbient = Color3.new(1,1,1) end, Description = "Fullbright"}
+Commands["LowGfx"] = {Action = function() settings().Rendering.QualityLevel = 1 end, Description = "Low graphics"}
+Commands["HighGfx"] = {Action = function() settings().Rendering.QualityLevel = 21 end, Description = "High graphics"}
+Commands["NoShadows"] = {Action = function() Lighting.GlobalShadows = false end, Description = "Disable shadows"}
+Commands["Shadows"] = {Action = function() Lighting.GlobalShadows = true end, Description = "Enable shadows"}
+Commands["Blur"] = {Action = function() Instance.new("BlurEffect", Lighting).Name = "Cust" end, Description = "Add blur"}
+Commands["Unblur"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v.Name == "Cust" then v:Destroy() end end end, Description = "Remove blur"}
+Commands["Bloom"] = {Action = function() Instance.new("BloomEffect", Lighting).Name = "Cust" end, Description = "Add bloom"}
+Commands["Unbloom"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v.Name == "Cust" then v:Destroy() end end end, Description = "Remove bloom"}
+Commands["Sunrays"] = {Action = function() Instance.new("SunRaysEffect", Lighting).Name = "Cust" end, Description = "Add sunrays"}
+Commands["Unsunrays"] = {Action = function() for _,v in pairs(Lighting:GetChildren()) do if v.Name == "Cust" then v:Destroy() end end end, Description = "Remove sunrays"}
+
+-- Scripts/Hubs
+Commands["Dex"] = {Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Load Dex"}
+Commands["DarkDex"] = {Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))() end, Description = "Load DarkDex"}
+Commands["IY"] = {Action = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end, Description = "Load IY"}
+Commands["CmdX"] = {Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source"))() end, Description = "Load CmdX"}
+Commands["SimpleSpy"] = {Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/exxtremestuffs/SimpleSpySource/master/SimpleSpy.lua"))() end, Description = "SimpleSpy"}
+Commands["Hydroxide"] = {Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/1.0.0/Hydroxide.lua"))() end, Description = "Hydroxide"}
+Commands["TurtleSpy"] = {Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/main/Turtle%20Spy.lua"))() end, Description = "TurtleSpy"}
+
+-- Aliases/Misc
+Commands["AntiAfk"] = {Action = function() LocalPlayer.Idled:Connect(function() game:GetService("VirtualUser"):Button1Down(Vector2.new()) end) end, Description = "Anti AFK"}
+Commands["Calc"] = {Action = function(e) print(loadstring("return "..e)()) end, Description = "Calculator"}
+Commands["Cc"] = {Action = function() local c=0; for _ in pairs(Commands) do c=c+1 end; print("Commands: "..c) end, Description = "Count commands"}
+Commands["Btools"] = {Action = function() Instance.new("HopperBin", LocalPlayer.Backpack).BinType = Enum.BinType.Clone end, Description = "Btools"}
+Commands["NoBtools"] = {Action = function() for _,v in pairs(LocalPlayer.Backpack:GetChildren()) do if v:IsA("HopperBin") then v:Destroy() end end end, Description = "No Btools"}
 Commands["Clip"] = { Action = function() ActiveStates.Noclip = false end, Description = "Disable Noclip" }
 Commands["Freeze"] = { Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = true end, Description = "Freeze character" }
 Commands["cc"] = { Action = function() local count = 0; for _ in pairs(Commands) do count = count + 1 end; game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Commands Count", Text = "Total: " .. count}) end, Description = "Commands Counter" }
