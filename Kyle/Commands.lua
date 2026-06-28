@@ -48,6 +48,7 @@ Commands["unInfjump"] = { Action = function() ActiveStates.Infjump = false end, 
 Commands["Noclip"] = { Action = function() ActiveStates.Noclip = true; RunService.Stepped:Connect(function() if ActiveStates.Noclip and LocalPlayer.Character then for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end end) end, Description = "Enable Noclip" }
 Commands["Clip"] = { Action = function() ActiveStates.Noclip = false end, Description = "Disable Noclip" }
 Commands["Freeze"] = { Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = true end, Description = "Freeze character" }
+Commands["cc"] = { Action = function() local count = 0; for _ in pairs(Commands) do count = count + 1 end; game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Commands Count", Text = "Total: " .. count}) end, Description = "Commands Counter" }
 Commands["unFreeze"] = { Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = false end, Description = "Unfreeze character" }
 Commands["Fullbright"] = { Action = function() Lighting.Brightness = 2; Lighting.OutdoorAmbient = Color3.new(1, 1, 1) end, Description = "Enable Fullbright" }
 Commands["Night"] = { Action = function() Lighting.TimeOfDay = "00:00:00" end, Description = "Set night" }
