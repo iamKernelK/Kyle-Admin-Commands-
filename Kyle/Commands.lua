@@ -46,10 +46,49 @@ local function CreateQuickBtn(name, cmd, toggleCmd)
         end
     end)
 end
-Commands["AddButton"]={Args="Name Cmd Toggle",Action=function(a) local p=string.split(a," "); local n,c,t=p[1],p[2],p[3]; if not n or not c then return end; local g=game:GetService("CoreGui"):FindFirstChild("KyleBtns") if not g then g=Instance.new("ScreenGui",game:GetService("CoreGui")); g.Name="KyleBtns" end; local b=Instance.new("TextButton",g); b.Name=n; b.Size=UDim2.new(0,140,0,40); b.Position=UDim2.new(0.5,0,0.5,0); b.BackgroundColor3=Color3.fromRGB(40,40,40); b.Text=n; b.TextColor3=Color3.fromRGB(255,255,255); b.Font=Enum.Font.GothamBold; b.Draggable=true; b.Active=true; Instance.new("UICorner",b).CornerRadius=UDim.new(0,8); local s=Instance.new("UIStroke",b); s.Color=Color3.fromRGB(60,60,60); s.Thickness=1.5; local act=false; b.MouseButton1Click:Connect(function() if t then act=not act; b.BackgroundColor3=act and Color3.fromRGB(46,204,113) or Color3.fromRGB(40,40,40); pcall(function() if act then Commands[c].Action() else Commands[t].Action() end end) else pcall(function() Commands[c].Action() end) end end) end,Description="Create UI Button"}
-Commands["ab"]=Commands["AddButton"]
-Commands["RemoveButton"]={Args="Name",Action=function(n) local g=game:GetService("CoreGui"):FindFirstChild("KyleBtns"); if g and g:FindFirstChild(n) then g[n]:Destroy() end end,Description="Remove UI Button"}
-Commands["rb"]=Commands["RemoveButton"]
+Commands["AddButton"] = {
+    Args = "Name Cmd Toggle",
+    Action = function(a)
+        local p = string.split(a, " ")
+        local n, c, t = p[1], p[2], p[3]
+        if not n or not c then return end
+        
+        -- تأكد من الوصول للـ GUI الخاص بك
+        local player = game:GetService("Players").LocalPlayer
+        local gui = player:WaitForChild("PlayerGui"):FindFirstChild("KyleBtns") 
+        if not gui then
+            gui = Instance.new("ScreenGui", player.PlayerGui)
+            gui.Name = "KyleBtns"
+            local frame = Instance.new("ScrollingFrame", gui)
+            frame.Name = "BtnFrame"
+            frame.Size = UDim2.new(0, 160, 0, 400); frame.Position = UDim2.new(0.8, 0, 0.2, 0)
+            frame.BackgroundTransparency = 1
+        end
+        local frame = gui.BtnFrame
+        
+        -- إنشاء الزر
+        local b = Instance.new("TextButton", frame)
+        b.Name = n; b.Size = UDim2.new(0, 140, 0, 40); b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        b.Text = n; b.TextColor3 = Color3.fromRGB(255, 255, 255); b.Font = Enum.Font.GothamBold
+        b.Draggable = true; b.Active = true
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+        local s = Instance.new("UIStroke", b); s.Color = Color3.fromRGB(60, 60, 60); s.Thickness = 1.5
+        
+        -- التفاعل (Toggle)
+        local act = false
+        b.MouseButton1Click:Connect(function()
+            if t then
+                act = not act
+                b.BackgroundColor3 = act and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(40, 40, 40)
+                pcall(function() if act then Commands[c].Action() else Commands[t].Action() end end)
+            else
+                pcall(function() Commands[c].Action() end)
+            end
+        end)
+    end,
+    Description = "Create UI Button"
+}
+Commands["ab"] = Commands["AddButton"]
 
 
 -- Sound Command
