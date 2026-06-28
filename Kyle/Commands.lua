@@ -41,6 +41,24 @@ Commands["Noclip"] = {Action = function() ActiveStates.Noclip = true; RunService
 Commands["Clip"] = {Action = function() ActiveStates.Noclip = false end, Description = "Disable Noclip"}
 Commands["FlySpeed"] = {Action = function(v) ActiveStates.FlySpeed = tonumber(v) or 50 end, Description = "Set fly speed"}
 Commands["Freeze"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = true end, Description = "Freeze character"}
+Commands["ThirdPerson"] = {Action = function() LocalPlayer.CameraMaxZoomDistance = 100; LocalPlayer.CameraMinZoomDistance = 10 end, Description = "Third person mode"}
+Commands["FirstPerson"] = {Action = function() LocalPlayer.CameraMaxZoomDistance = 0.5; LocalPlayer.CameraMinZoomDistance = 0.5 end, Description = "First person mode"}
+Commands["HideUI"] = {Action = function() game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, false) end, Description = "Hide core UI"}
+Commands["ShowUI"] = {Action = function() game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.All, true) end, Description = "Show core UI"}
+Commands["DropTools"] = {Action = function() for _,t in pairs(LocalPlayer.Character:GetChildren()) do if t:IsA("Tool") then t.Parent = workspace end end end, Description = "Drop tools"}
+Commands["ClearTools"] = {Action = function() LocalPlayer.Backpack:ClearAllChildren() end, Description = "Delete tools"}
+Commands["EquipAll"] = {Action = function() for _,t in pairs(LocalPlayer.Backpack:GetChildren()) do if t:IsA("Tool") then t.Parent = LocalPlayer.Character end end end, Description = "Equip all"}
+Commands["Print"] = {Action = function(v) print(v or "Slow X Executed") end, Description = "Print message"}
+Commands["Warn"] = {Action = function(v) warn(v or "Warning!") end, Description = "Warn message"}
+Commands["Error"] = {Action = function(v) error(v or "Error!") end, Description = "Error message"}
+Commands["ClearConsole"] = {Action = function() print(string.rep("\n", 200)) end, Description = "Clear console"}
+Commands["Chat"] = {Action = function(v) game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(v or "Slow X Hub!", "All") end, Description = "Chat message"}
+Commands["Spam"] = {Action = function(v) ActiveStates.Spam = true; task.spawn(function() while ActiveStates.Spam do game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(v or "Spam!", "All"); task.wait(0.5) end end) end, Description = "Spam chat"}
+Commands["unSpam"] = {Action = function() ActiveStates.Spam = false end, Description = "Stop spam"}
+Commands["Re"] = {Action = function() LocalPlayer.Character:BreakJoints() end, Description = "Reset character"}
+Commands["Respawn"] = {Action = function() LocalPlayer.Character:Destroy() end, Description = "Respawn character"}
+Commands["HatSpin"] = {Action = function() for _,h in pairs(LocalPlayer.Character:GetChildren()) do if h:IsA("Accessory") then h.Handle.AssemblyLinearVelocity = Vector3.new(0, 100, 0) end end end, Description = "Spin hats"}
+Commands["AntiRagdoll"] = {Action = function() LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false) end, Description = "Anti ragdoll"}
 Commands["unFreeze"] = {Action = function() LocalPlayer.Character.HumanoidRootPart.Anchored = false end, Description = "Unfreeze character"}
 Commands["Sit"] = {Action = function() LocalPlayer.Character.Humanoid.Sit = true end, Description = "Force sit"}
 Commands["Jump"] = {Action = function() LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end, Description = "Jump"}
@@ -57,6 +75,7 @@ Commands["unFloat"] = {Action = function() if ActiveStates.Float then ActiveStat
 Commands["GodMode"] = {Action = function() local cam = workspace.CurrentCamera; local char = LocalPlayer.Character; char.Humanoid.Health = char.Humanoid.MaxHealth; cam.CameraSubject = char.Humanoid end, Description = "Fake GodMode"}
 Commands["Headless"] = {Action = function() local h = LocalPlayer.Character:FindFirstChild("Head"); if h then h:Destroy() end end, Description = "Client headless"}
 Commands["Korblox"] = {Action = function() local l = LocalPlayer.Character:FindFirstChild("RightLowerLeg"); if l then l:Destroy() end end, Description = "Client korblox"}
+Commands["CC"] = {Action = function() local c = 0; for _ in pairs(Commands) do c = c + 1 end; game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Command Count", Text = "There are " .. c .. " commands currently available."}) end, Description = "Shows the total number of commands in English"}
 
 -- [ World & Lighting Commands ] --
 Commands["Fullbright"] = {Action = function() Lighting.Brightness = 2; Lighting.OutdoorAmbient = Color3.new(1, 1, 1) end, Description = "Enable Fullbright"}
