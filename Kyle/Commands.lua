@@ -23,70 +23,17 @@ Commands["tto"]={Args="Player",Action=function(n) local t=Players:FindFirstChild
 Commands["TweenSpeed"]={Args="Speed",Action=function(v) GlobalTweenSpeed=tonumber(v) or 150 end,Description="Set TweenSpeed"}
 Commands["AntiVoid2"] = {Action = function() game.Workspace.FallenPartsDestroyHeight = -999999 end, Description = "Prevent death in void"}
 Commands["Explode"] = {Action = function() Instance.new("Explosion", game.Players.LocalPlayer.Character.HumanoidRootPart) end, Description = "Explode yourself"}
--- AddButton / ab Commands
-local ButtonContainer = Instance.new("ScrollingFrame", ScreenGui)
-ButtonContainer.Size = UDim2.new(0, 160, 0, 400); ButtonContainer.Position = UDim2.new(0.85, 0, 0.2, 0)
-ButtonContainer.BackgroundTransparency = 1; ButtonContainer.ScrollBarThickness = 0
 
-local function CreateQuickBtn(name, cmd, toggleCmd)
-    local btn = Instance.new("TextButton", ButtonContainer)
-    btn.Name = name; btn.Size = UDim2.new(0, 140, 0, 40); btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.Draggable = true; btn.Text = name; btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = Enum.Font.GothamBold
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-    local stroke = Instance.new("UIStroke", btn); stroke.Color = Color3.fromRGB(60, 60, 60); stroke.Thickness = 1.5
-    
-    local active = false
-    btn.MouseButton1Click:Connect(function()
-        if toggleCmd then
-            active = not active
-            btn.BackgroundColor3 = active and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(40, 40, 40)
-            pcall(function() if active then Commands[cmd].Action() else Commands[toggleCmd].Action() end end)
-        else
-            pcall(function() Commands[cmd].Action() end)
-        end
-    end)
-end
 Commands["AddButton"] = {
-    Args = "Name Cmd Toggle",
-    Action = function(a)
-        local p = string.split(a, " ")
-        local n, c, t = p[1], p[2], p[3]
-        if not n or not c then return end
-        
-        -- تأكد من الوصول للـ GUI الخاص بك
-        local player = game:GetService("Players").LocalPlayer
-        local gui = player:WaitForChild("PlayerGui"):FindFirstChild("KyleBtns") 
-        if not gui then
-            gui = Instance.new("ScreenGui", player.PlayerGui)
-            gui.Name = "KyleBtns"
-            local frame = Instance.new("ScrollingFrame", gui)
-            frame.Name = "BtnFrame"
-            frame.Size = UDim2.new(0, 160, 0, 400); frame.Position = UDim2.new(0.8, 0, 0.2, 0)
-            frame.BackgroundTransparency = 1
-        end
-        local frame = gui.BtnFrame
-        
-        -- إنشاء الزر
-        local b = Instance.new("TextButton", frame)
-        b.Name = n; b.Size = UDim2.new(0, 140, 0, 40); b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        b.Text = n; b.TextColor3 = Color3.fromRGB(255, 255, 255); b.Font = Enum.Font.GothamBold
-        b.Draggable = true; b.Active = true
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-        local s = Instance.new("UIStroke", b); s.Color = Color3.fromRGB(60, 60, 60); s.Thickness = 1.5
-        
-        -- التفاعل (Toggle)
-        local act = false
-        b.MouseButton1Click:Connect(function()
-            if t then
-                act = not act
-                b.BackgroundColor3 = act and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(40, 40, 40)
-                pcall(function() if act then Commands[c].Action() else Commands[t].Action() end end)
-            else
-                pcall(function() Commands[c].Action() end)
-            end
+    Args = "Name Cmd ToggleCmd",
+    Action = function(args)
+        local parts = string.split(args, " ")
+        -- Calling the script from your provided GitHub link
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/iamKernelK/Kyle-Admin-Commands-/refs/heads/main/Kyle/Guis/AddButton.lua"))(parts[1], parts[2], parts[3])
         end)
     end,
-    Description = "Create UI Button"
+    Description = "Create a custom button"
 }
 Commands["ab"] = Commands["AddButton"]
 
