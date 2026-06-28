@@ -32,6 +32,9 @@ end
 Commands["Speed"] = {Action = function(v) LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(v) or 16 end, Description = "Change walk speed"}
 Commands["ResetSpeed"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed"}
 Commands["Jumppower"] = {Action = function(v) LocalPlayer.Character.Humanoid.UseJumpPower = true; LocalPlayer.Character.Humanoid.JumpPower = tonumber(v) or 50 end, Description = "Change jump power"}
+Commands["Unfly"] = {Action = function() ActiveStates.IsFlying = false; LocalPlayer.Character.Humanoid.PlatformStand = false; if ActiveStates.FlyBody then ActiveStates.FlyBody:Destroy() end; if ActiveStates.FlyGyro then ActiveStates.FlyGyro:Destroy() end; if ActiveStates.FlyLoop then ActiveStates.FlyLoop:Disconnect() end end, Description = "Disable fly"}
+Commands["Unrun"] = {Action = function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end, Description = "Reset speed to normal"}
+Commands["Blur"] = {Action = function() Instance.new("BlurEffect", game.Lighting).Name = "SXH_Blur" end, Description = "Add screen blur"}
 Commands["ResetJumpPower"] = {Action = function() LocalPlayer.Character.Humanoid.JumpPower = 50 end, Description = "Reset jump power"}
 Commands["Infjump"] = {Action = SetupJumpMod("Infjump"), Description = "Enable infinite jump"}
 Commands["unInfjump"] = {Action = function() ActiveStates.Infjump = false end, Description = "Disable infinite jump"}
