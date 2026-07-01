@@ -284,8 +284,25 @@ Commands["Goto"] = { Action = function(n) local t = Players:FindFirstChild(n); i
 Commands["Dex"] = { Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Load Dex" }
 Commands["DarkDex"] = { Action = function() local l,d=pcall(game.GetObjects,game,"rbxassetid://3567096419"); if not l or type(d[1])~="userdata" then return end local dex=d[1]; if syn and syn.protect_gui then pcall(syn.protect_gui,dex) end; local n=""; for i=1,24 do n=n..string.char(math.random(33,126)) end; dex.Name=n; dex.Parent=CoreGui; local function S(v) task.spawn(setfenv(loadstring(v.Source,"="..v:GetFullName()), setmetatable({script=v}, {__index=getfenv()}))) end; if dex:IsA("LuaSourceContainer") then S(dex) end; for _,v in ipairs(dex:GetDescendants()) do if v:IsA("LuaSourceContainer") then S(v) end end end, Description = "Load DarkDex" }
 Commands["TurtleSpy"] = { Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/main/Turtle%20Spy.lua"))() end, Description = "Load TurtleSpy" }
+local function getFlyVelocity(cam, moveDir, speed)
+    if moveDir.Magnitude == 0 then return Vector3.zero end
+    local lv = cam.CFrame.LookVector
+    local rv = cam.CFrame.RightVector
+    local flatLv = Vector3.new(lv.X, 0, lv.Z)
+    
+    if flatLv.Magnitude > 0.001 then
+        flatLv = flatLv.Unit
+        local flatRv = Vector3.new(rv.X, 0, rv.Z).Unit
+        local forwardMove = flatLv:Dot(moveDir)
+        local rightMove = flatRv:Dot(moveDir)
+        return (lv * forwardMove + rv * rightMove).Unit * speed
+    else
+        return moveDir * speed
+    end
+end
+
 Commands["Fly"] = {
-    Action = function()
+    Action = function(args)
         local p = game:GetService("Players").LocalPlayer
         local rs = game:GetService("RunService")
         local char = p.Character
@@ -294,6 +311,8 @@ Commands["Fly"] = {
         if not hrp or not hum then return end
         
         if _G.KyleFlyStop then _G.KyleFlyStop() end
+        
+        local speed = tonumber(args) or 50
         hum.PlatformStand = true
         
         local bv = Instance.new("BodyVelocity", hrp)
@@ -308,7 +327,7 @@ Commands["Fly"] = {
         track:Play()
         
         _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
-            bv.Velocity = hum.MoveDirection * 50
+            bv.Velocity = getFlyVelocity(workspace.CurrentCamera, hum.MoveDirection, speed)
             bg.CFrame = workspace.CurrentCamera.CFrame
         end)
         
@@ -329,6 +348,112 @@ Commands["UnFly"] = {
     end
 }
 
+Commands["VFly"] = {
+    Action = function(args)
+        local p = game:GetService("Players").LocalPlayer
+        local rs = game:GetService("RunService")
+        local char = p.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if not hum or not hum.SeatPart then return end
+        
+        if _G.KyleVFlyStop then _G.KyleVFlyStop() end
+        
+        local speed = tonumber(args) or 50
+        local seat = hum.SeatPart
+        local bv = Instance.new("BodyVelocity", seat)
+        bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+        local bg = Instance.new("BodyGyro", seat)
+        bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+        bg.P = 10000
+        
+        _G.KyleVFlyLoop = rs.RenderStepped:Connect(function()
+            bv.Velocity = getFlyVelocity(workspace.CurrentCamera, hum.MoveDirection, speed)
+            bg.CFrame = workspace.CurrentCamera.CFrame
+        end)
+        
+        _G.KyleVFlyStop = function()
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
+            if _G.KyleVFlyLoop then _G.KyleVFlyLoop:Disconnect() end
+            _G.KyleVFlyStop = nil
+        end
+    end
+}
+
+Commands["UnVFly"] = {
+    Action = function()
+        if _G.KyleVFlyStop then _G.KyleVFlyStop() end
+    end
+}
+
+Commands["CFly"] = {
+    Action = function(args)
+        local p = game:GetService("Players").LocalPlayer
+        local rs = game:GetService("RunService")
+        local char = p.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then return end
+        
+        if _G.KyleCFlyStop then _G.KyleCFlyStop() end
+        
+        local speed = tonumber(args) or 50
+        hum.PlatformStand = true
+        
+        _G.KyleCFlyLoop = rs.Heartbeat:Connect(function(dt)
+            hrp.Velocity = Vector3.zero 
+            if hum.MoveDirection.Magnitude > 0 then
+                local flyVel = getFlyVelocity(workspace.CurrentCamera, hum.MoveDirection, speed)
+                hrp.CFrame = hrp.CFrame + (flyVel * dt)
+            end
+            hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + workspace.CurrentCamera.CFrame.LookVector)
+        end)
+        
+        _G.KyleCFlyStop = function()
+            hum.PlatformStand = false
+            if _G.KyleCFlyLoop then _G.KyleCFlyLoop:Disconnect() end
+            _G.KyleCFlyStop = nil
+        end
+    end
+}
+
+Commands["UnCFly"] = {
+    Action = function()
+        if _G.KyleCFlyStop then _G.KyleCFlyStop() end
+    end
+}
+
+Commands["TpWalk"] = {
+    Action = function(args)
+        local p = game:GetService("Players").LocalPlayer
+        local rs = game:GetService("RunService")
+        local char = p.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then return end
+        
+        if _G.KyleTpWalkStop then _G.KyleTpWalkStop() end
+        
+        local speedMult = tonumber(args) or 2 
+        
+        _G.KyleTpWalkLoop = rs.Heartbeat:Connect(function()
+            if hum.MoveDirection.Magnitude > 0 then
+                hrp.CFrame = hrp.CFrame + (hum.MoveDirection * speedMult)
+            end
+        end)
+        
+        _G.KyleTpWalkStop = function()
+            if _G.KyleTpWalkLoop then _G.KyleTpWalkLoop:Disconnect() end
+            _G.KyleTpWalkStop = nil
+        end
+    end
+}
+
+Commands["UnTpWalk"] = {
+    Action = function()
+        if _G.KyleTpWalkStop then _G.KyleTpWalkStop() end
+    end
+}
 Commands["Btools"] = { Action = function() local h = Instance.new("HopperBin", LocalPlayer.Backpack); h.BinType = Enum.BinType.Clone; Instance.new("HopperBin", LocalPlayer.Backpack).BinType = Enum.BinType.Hammer end, Description = "Give Btools" }
 Commands["NoBtools"] = { Action = function() for _,v in pairs(LocalPlayer.Backpack:GetChildren()) do if v:IsA("HopperBin") then v:Destroy() end end end, Description = "Remove Btools" }
 Commands["InfiniteYield"] = { Action = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end, Description = "Load IY" }
