@@ -284,45 +284,6 @@ Commands["Goto"] = { Action = function(n) local t = Players:FindFirstChild(n); i
 Commands["Dex"] = { Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Load Dex" }
 Commands["DarkDex"] = { Action = function() local l,d=pcall(game.GetObjects,game,"rbxassetid://3567096419"); if not l or type(d[1])~="userdata" then return end local dex=d[1]; if syn and syn.protect_gui then pcall(syn.protect_gui,dex) end; local n=""; for i=1,24 do n=n..string.char(math.random(33,126)) end; dex.Name=n; dex.Parent=CoreGui; local function S(v) task.spawn(setfenv(loadstring(v.Source,"="..v:GetFullName()), setmetatable({script=v}, {__index=getfenv()}))) end; if dex:IsA("LuaSourceContainer") then S(dex) end; for _,v in ipairs(dex:GetDescendants()) do if v:IsA("LuaSourceContainer") then S(v) end end end, Description = "Load DarkDex" }
 Commands["TurtleSpy"] = { Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/main/Turtle%20Spy.lua"))() end, Description = "Load TurtleSpy" }
-
-Commands["VFly"] = {
-    Action = function()
-        local p = game:GetService("Players").LocalPlayer
-        local rs = game:GetService("RunService")
-        local char = p.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        -- التأكد من أن اللاعب يجلس في سيارة
-        if not hum or not hum.SeatPart then return end
-        
-        if _G.KyleVFlyStop then _G.KyleVFlyStop() end
-        
-        local seat = hum.SeatPart
-        local bv = Instance.new("BodyVelocity", seat)
-        bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
-        local bg = Instance.new("BodyGyro", seat)
-        bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
-        bg.P = 10000
-        
-        _G.KyleVFlyLoop = rs.RenderStepped:Connect(function()
-            bv.Velocity = hum.MoveDirection * 50
-            bg.CFrame = workspace.CurrentCamera.CFrame
-        end)
-        
-        _G.KyleVFlyStop = function()
-            if bv then bv:Destroy() end
-            if bg then bg:Destroy() end
-            if _G.KyleVFlyLoop then _G.KyleVFlyLoop:Disconnect() end
-            _G.KyleVFlyStop = nil
-        end
-    end
-}
-
-Commands["UnVFly"] = {
-    Action = function()
-        if _G.KyleVFlyStop then _G.KyleVFlyStop() end
-    end
-}
-
 Commands["Fly"] = {
     Action = function()
         local p = game:GetService("Players").LocalPlayer
@@ -367,7 +328,6 @@ Commands["UnFly"] = {
         if _G.KyleFlyStop then _G.KyleFlyStop() end
     end
 }
-
 
 Commands["Btools"] = { Action = function() local h = Instance.new("HopperBin", LocalPlayer.Backpack); h.BinType = Enum.BinType.Clone; Instance.new("HopperBin", LocalPlayer.Backpack).BinType = Enum.BinType.Hammer end, Description = "Give Btools" }
 Commands["NoBtools"] = { Action = function() for _,v in pairs(LocalPlayer.Backpack:GetChildren()) do if v:IsA("HopperBin") then v:Destroy() end end end, Description = "Remove Btools" }
