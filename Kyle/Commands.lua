@@ -284,52 +284,78 @@ Commands["Goto"] = { Action = function(n) local t = Players:FindFirstChild(n); i
 Commands["Dex"] = { Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Load Dex" }
 Commands["DarkDex"] = { Action = function() local l,d=pcall(game.GetObjects,game,"rbxassetid://3567096419"); if not l or type(d[1])~="userdata" then return end local dex=d[1]; if syn and syn.protect_gui then pcall(syn.protect_gui,dex) end; local n=""; for i=1,24 do n=n..string.char(math.random(33,126)) end; dex.Name=n; dex.Parent=CoreGui; local function S(v) task.spawn(setfenv(loadstring(v.Source,"="..v:GetFullName()), setmetatable({script=v}, {__index=getfenv()}))) end; if dex:IsA("LuaSourceContainer") then S(dex) end; for _,v in ipairs(dex:GetDescendants()) do if v:IsA("LuaSourceContainer") then S(v) end end end, Description = "Load DarkDex" }
 Commands["TurtleSpy"] = { Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/main/Turtle%20Spy.lua"))() end, Description = "Load TurtleSpy" }
+
+Commands["VFly"] = {
+    Action = function()
+        local p = game:GetService("Players").LocalPlayer
+        local rs = game:GetService("RunService")
+        local char = p.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        -- التأكد من أن اللاعب يجلس في سيارة
+        if not hum or not hum.SeatPart then return end
+        
+        if _G.KyleVFlyStop then _G.KyleVFlyStop() end
+        
+        local seat = hum.SeatPart
+        local bv = Instance.new("BodyVelocity", seat)
+        bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+        local bg = Instance.new("BodyGyro", seat)
+        bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+        bg.P = 10000
+        
+        _G.KyleVFlyLoop = rs.RenderStepped:Connect(function()
+            bv.Velocity = hum.MoveDirection * 50
+            bg.CFrame = workspace.CurrentCamera.CFrame
+        end)
+        
+        _G.KyleVFlyStop = function()
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
+            if _G.KyleVFlyLoop then _G.KyleVFlyLoop:Disconnect() end
+            _G.KyleVFlyStop = nil
+        end
+    end
+}
+
+Commands["UnVFly"] = {
+    Action = function()
+        if _G.KyleVFlyStop then _G.KyleVFlyStop() end
+    end
+}
+
 Commands["Fly"] = {
     Action = function()
         local p = game:GetService("Players").LocalPlayer
         local rs = game:GetService("RunService")
-        
-        if _G.KyleFlyStop then _G.KyleFlyStop() end
-        
         local char = p.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         local hum = char and char:FindFirstChildOfClass("Humanoid")
         if not hrp or not hum then return end
         
+        if _G.KyleFlyStop then _G.KyleFlyStop() end
         hum.PlatformStand = true
         
         local bv = Instance.new("BodyVelocity", hrp)
         bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
-        bv.Velocity = Vector3.new(0, 0, 0)
-        
         local bg = Instance.new("BodyGyro", hrp)
         bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
         bg.P = 10000
-        bg.CFrame = hrp.CFrame
+        
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://507765000"
+        local track = hum:LoadAnimation(anim)
+        track:Play()
         
         _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
-            local cam = workspace.CurrentCamera
-            local moveDir = hum.MoveDirection
-            
-            -- تصحيح الاتجاهات:
-            -- نستخدم الـ LookVector والـ RightVector الخاص بالكاميرا لضمان مطابقة حركة اللاعب مع الشاشة
-            if moveDir.Magnitude > 0 then
-                local velocity = (cam.CFrame.LookVector * moveDir.Z * 50) + 
-                                 (cam.CFrame.RightVector * moveDir.X * 50)
-                -- نلغي تأثير الـ Y في الـ moveDir إذا كنا نريد طيراناً أفقياً ثابتاً، 
-                -- أو نتركه إذا كنت تريد الطيران للأعلى والأسفل.
-                bv.Velocity = velocity
-                bg.CFrame = cam.CFrame
-            else
-                bv.Velocity = Vector3.new(0, 0, 0)
-                bg.CFrame = cam.CFrame
-            end
+            bv.Velocity = hum.MoveDirection * 50
+            bg.CFrame = workspace.CurrentCamera.CFrame
         end)
         
         _G.KyleFlyStop = function()
             hum.PlatformStand = false
             if bv then bv:Destroy() end
             if bg then bg:Destroy() end
+            if track then track:Stop() end
             if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
             _G.KyleFlyStop = nil
         end
@@ -341,6 +367,7 @@ Commands["UnFly"] = {
         if _G.KyleFlyStop then _G.KyleFlyStop() end
     end
 }
+
 
 Commands["Btools"] = { Action = function() local h = Instance.new("HopperBin", LocalPlayer.Backpack); h.BinType = Enum.BinType.Clone; Instance.new("HopperBin", LocalPlayer.Backpack).BinType = Enum.BinType.Hammer end, Description = "Give Btools" }
 Commands["NoBtools"] = { Action = function() for _,v in pairs(LocalPlayer.Backpack:GetChildren()) do if v:IsA("HopperBin") then v:Destroy() end end end, Description = "Remove Btools" }
