@@ -1,0 +1,470 @@
+-- ==========================================
+-- Ton Admin Commands - V2 (Unified & Remastered)
+-- ==========================================
+
+local CoreGui = (gethui and gethui()) or game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- // Clean up existing UI instances
+if CoreGui:FindFirstChild("TonAdminUI") then CoreGui.TonAdminUI:Destroy() end
+if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("TonAdminUI") then LocalPlayer.PlayerGui.TonAdminUI:Destroy() end
+
+-- // Global States & Variables
+local ActiveStates = {}
+_G.PrevWalkSpeed = 16
+_G.SavedPos = CFrame.new(0, 50, 0)
+local lastInfJump = 0
+
+local function setclipboard_safe(text)
+    if setclipboard then setclipboard(text) end
+end
+
+-- // Theme Configuration
+local Theme = {
+    Background = Color3.fromRGB(15, 15, 18),
+    Secondary = Color3.fromRGB(25, 25, 30),
+    OrangeLight = Color3.fromRGB(255, 140, 0),
+    OrangeDark = Color3.fromRGB(200, 70, 0),
+    TextWhite = Color3.fromRGB(255, 255, 255),
+    TextDim = Color3.fromRGB(170, 170, 170)
+}
+
+local AnimConfig = {
+    Fast = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    Smooth = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+}
+
+-- ==========================================
+-- [ 1. COMMANDS DICTIONARY ] 
+-- يمكنك إضافة الأوامر الجديدة هنا بكل سهولة
+-- ==========================================
+local Commands = {
+    ["Fly"] = {
+        Description = "الطيران بسرعة محددة (Fly [speed])",
+        Action = function(speed)
+            local speed = tonumber(speed) or 50
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if not hrp or not hum then return end
+            if ActiveStates.FlyStop then ActiveStates.FlyStop() end
+            
+            hum.PlatformStand = true
+            local bv = Instance.new("BodyVelocity", hrp); bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+            local bg = Instance.new("BodyGyro", hrp); bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0); bg.P = 10000
+            local anim = Instance.new("Animation"); anim.AnimationId = "rbxassetid://507765000"
+            local track = hum:LoadAnimation(anim); track:Play()
+            
+            ActiveStates.FlyLoop = RunService.RenderStepped:Connect(function()
+                local cam = workspace.CurrentCamera
+                local moveDir = hum.MoveDirection
+                local lv = cam.CFrame.LookVector
+                local rv = cam.CFrame.RightVector
+                local flatLv = Vector3.new(lv.X, 0, lv.Z).Unit
+                local flatRv = Vector3.new(rv.X, 0, rv.Z).Unit
+                
+                if moveDir.Magnitude > 0 then
+                    local forwardMove = flatLv:Dot(moveDir)
+                    local rightMove = flatRv:Dot(moveDir)
+                    bv.Velocity = (lv * forwardMove + rv * rightMove).Unit * speed
+                else
+                    bv.Velocity = Vector3.zero
+                end
+                bg.CFrame = cam.CFrame
+            end)
+            
+            ActiveStates.FlyStop = function()
+                hum.PlatformStand = false; if bv then bv:Destroy() end; if bg then bg:Destroy() end
+                if track then track:Stop() end; if ActiveStates.FlyLoop then ActiveStates.FlyLoop:Disconnect() end
+                ActiveStates.FlyStop = nil
+            end
+        end
+    },
+    ["UnFly"] = { Description = "إيقاف الطيران", Action = function() if ActiveStates.FlyStop then ActiveStates.FlyStop() end end },
+    
+    ["Speed"] = {
+        Description = "تغيير سرعة اللاعب (Speed [number])",
+        Action = function(v)
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+            if hum then
+                _G.PrevWalkSpeed = hum.WalkSpeed
+                hum.WalkSpeed = tonumber(v) or 16
+            end
+        end
+    },
+    ["ResetSpeed"] = { Description = "إرجاع السرعة للطبيعي", Action = function() local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid"); if hum then hum.WalkSpeed = 16 end end },
+    
+    ["Jumppower"] = {
+        Description = "تغيير قوة القفز (Jumppower [number])",
+        Action = function(v)
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+            if hum then
+                hum.UseJumpPower = true
+                hum.JumpPower = tonumber(v) or 50
+            end
+        end
+    },
+    ["ResetJumpPower"] = { Description = "إرجاع القفز للطبيعي", Action = function() local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid"); if hum then hum.JumpPower = 50 end end },
+
+    ["Infjump"] = { 
+        Description = "القفز اللانهائي",
+        Action = function() 
+            ActiveStates.Infjump = true 
+            if not ActiveStates.InfJumpConn then
+                ActiveStates.InfJumpConn = UserInputService.JumpRequest:Connect(function()
+                    if ActiveStates.Infjump and os.clock() - lastInfJump >= 0.2 then
+                        lastInfJump = os.clock()
+                        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                    end
+                end)
+            end
+        end 
+    },
+    ["UnInfjump"] = { Description = "إيقاف القفز اللانهائي", Action = function() ActiveStates.Infjump = false end },
+
+    ["Morph"] = {
+        Description = "تحويل شكلك لشكل لاعب آخر (Morph [username])",
+        Action = function(targetName)
+            pcall(function()
+                local id = Players:GetUserIdFromNameAsync(targetName)
+                local desc = Players:GetHumanoidDescriptionFromUserId(id)
+                LocalPlayer.Character.Humanoid:ApplyDescription(desc)
+                ActiveStates.CurrentMorphID = id
+            end)
+        end
+    },
+    
+    ["Rejoin"] = { Description = "إعادة الدخول لنفس السيرفر", Action = function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end },
+    ["Jobid"] = { Description = "نسخ كود السيرفر", Action = function() setclipboard_safe(game.JobId) end },
+    ["ServerHop"] = { 
+        Description = "الانتقال لسيرفر عشوائي",
+        Action = function() 
+            local r = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
+            if r and r.data then TeleportService:TeleportToPlaceInstance(game.PlaceId, r.data[math.random(1,#r.data)].id) end
+        end 
+    },
+
+    ["CopyPos"] = { Description = "نسخ إحداثيات مكانك", Action = function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then setclipboard_safe(tostring(LocalPlayer.Character.HumanoidRootPart.Position)) end end },
+    ["SavePos"] = { Description = "حفظ مكانك الحالي للرجوع إليه", Action = function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then _G.SavedPos = LocalPlayer.Character.HumanoidRootPart.CFrame end end },
+    ["LoadPos"] = { Description = "الرجوع للمكان المحفوظ", Action = function() if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = _G.SavedPos end end },
+    
+    ["Fullbright"] = { Description = "إضاءة كاملة للماب", Action = function() Lighting.Brightness = 2; Lighting.OutdoorAmbient = Color3.new(1,1,1) end },
+    ["Day"] = { Description = "تحويل الوقت للنهار", Action = function() Lighting.TimeOfDay = "12:00:00" end },
+    ["Night"] = { Description = "تحويل الوقت لليل", Action = function() Lighting.TimeOfDay = "24:00:00" end },
+    
+    ["Noclip"] = { 
+        Description = "المرور عبر الجدران",
+        Action = function() 
+            ActiveStates.Noclip = true
+            if not ActiveStates.NoclipConn then
+                ActiveStates.NoclipConn = RunService.Stepped:Connect(function() 
+                    if ActiveStates.Noclip and LocalPlayer.Character then 
+                        for _,p in pairs(LocalPlayer.Character:GetDescendants()) do 
+                            if p:IsA("BasePart") then p.CanCollide = false end 
+                        end 
+                    end 
+                end)
+            end
+        end 
+    },
+    ["UnNoclip"] = { Description = "إيقاف المرور عبر الجدران", Action = function() ActiveStates.Noclip = false end }
+}
+
+-- ==========================================
+-- [ 2. UI CONSTRUCTION ] 
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TonAdminUI"
+ScreenGui.DisplayOrder = 999
+ScreenGui.ResetOnSpawn = false
+local successMount = pcall(function() ScreenGui.Parent = CoreGui end)
+if not successMount then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+-- Main Button (The icon to open UI)
+local MainButton = Instance.new("ImageButton")
+MainButton.Name = "MainToggleButton"
+MainButton.Size = UDim2.new(0, 50, 0, 50)
+MainButton.Position = UDim2.new(0.5, 0, 0, 40)
+MainButton.AnchorPoint = Vector2.new(0.5, 0.5)
+MainButton.Image = "rbxassetid://103568481311084"
+MainButton.BackgroundColor3 = Theme.Background
+MainButton.Parent = ScreenGui
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(1, 0)
+BtnCorner.Parent = MainButton
+
+local BtnStroke = Instance.new("UIStroke")
+BtnStroke.Thickness = 2
+BtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+BtnStroke.Parent = MainButton
+
+local BtnGradient = Instance.new("UIGradient")
+BtnGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Theme.OrangeLight),
+    ColorSequenceKeypoint.new(1, Theme.OrangeDark)
+}
+BtnGradient.Parent = BtnStroke
+
+-- Main Container (Hidden by default)
+local Container = Instance.new("Frame")
+Container.Size = UDim2.new(0, 450, 0, 320)
+Container.Position = UDim2.new(0.5, 0, 0.5, 0)
+Container.AnchorPoint = Vector2.new(0.5, 0.5)
+Container.BackgroundColor3 = Theme.Background
+Container.BackgroundTransparency = 0.05
+Container.GroupTransparency = 1 -- Used for fade in/out
+Container.Visible = false
+Container.Parent = ScreenGui
+
+local ContainerCorner = Instance.new("UICorner")
+ContainerCorner.CornerRadius = UDim.new(0, 10)
+ContainerCorner.Parent = Container
+
+local ContainerStroke = Instance.new("UIStroke")
+ContainerStroke.Thickness = 1
+ContainerStroke.Color = Theme.OrangeDark
+ContainerStroke.Transparency = 0.4
+ContainerStroke.Parent = Container
+
+-- Drop Shadow
+local DropShadow = Instance.new("ImageLabel")
+DropShadow.Size = UDim2.new(1, 40, 1, 40)
+DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+DropShadow.BackgroundTransparency = 1
+DropShadow.Image = "rbxassetid://6015897843"
+DropShadow.ImageColor3 = Color3.new(0,0,0)
+DropShadow.ImageTransparency = 0.5
+DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+DropShadow.ZIndex = -1
+DropShadow.Parent = Container
+
+-- Search Input
+local InputFrame = Instance.new("Frame")
+InputFrame.Size = UDim2.new(1, -30, 0, 45)
+InputFrame.Position = UDim2.new(0, 15, 0, 15)
+InputFrame.BackgroundColor3 = Theme.Secondary
+InputFrame.Parent = Container
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 6)
+InputCorner.Parent = InputFrame
+
+local InputStroke = Instance.new("UIStroke")
+InputStroke.Thickness = 1
+InputStroke.Color = Theme.OrangeLight
+InputStroke.Transparency = 0.7
+InputStroke.Parent = InputFrame
+
+local Input = Instance.new("TextBox")
+Input.Size = UDim2.new(1, -20, 1, 0)
+Input.Position = UDim2.new(0, 10, 0, 0)
+Input.BackgroundTransparency = 1
+Input.TextColor3 = Theme.TextWhite
+Input.Text = ""
+Input.PlaceholderText = "Type command here..."
+Input.PlaceholderColor3 = Theme.TextDim
+Input.Font = Enum.Font.GothamMedium
+Input.TextSize = 14
+Input.TextXAlignment = Enum.TextXAlignment.Left
+Input.ClearTextOnFocus = false
+Input.Parent = InputFrame
+
+-- Command List (ScrollingFrame)
+local CmdList = Instance.new("ScrollingFrame")
+CmdList.Size = UDim2.new(1, -30, 1, -85)
+CmdList.Position = UDim2.new(0, 15, 0, 70)
+CmdList.BackgroundTransparency = 1
+CmdList.ScrollBarImageColor3 = Theme.OrangeLight
+CmdList.ScrollBarThickness = 3
+CmdList.BorderSizePixel = 0
+CmdList.Parent = Container
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Padding = UDim.new(0, 8)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ListLayout.Parent = CmdList
+
+-- ==========================================
+-- [ 3. UI LOGIC & ANIMATIONS ] 
+-- ==========================================
+
+local function UpdateList(filter)
+    for _, child in pairs(CmdList:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+
+    local count = 0
+    filter = filter or ""
+
+    for cmdName, cmdData in pairs(Commands) do
+        if filter == "" or string.find(string.lower(cmdName), string.lower(filter)) then
+            local ItemFrame = Instance.new("Frame")
+            ItemFrame.Size = UDim2.new(1, -10, 0, 35)
+            ItemFrame.BackgroundColor3 = Theme.Secondary
+            ItemFrame.BackgroundTransparency = 0.5
+            ItemFrame.Parent = CmdList
+            
+            local ItemCorner = Instance.new("UICorner")
+            ItemCorner.CornerRadius = UDim.new(0, 6)
+            ItemCorner.Parent = ItemFrame
+
+            local ItemText = Instance.new("TextLabel")
+            ItemText.Size = UDim2.new(1, -15, 1, 0)
+            ItemText.Position = UDim2.new(0, 15, 0, 0)
+            ItemText.BackgroundTransparency = 1
+            ItemText.RichText = true
+            ItemText.Text = "<b><font color='#FF8C00'>" .. cmdName .. "</font></b> <font color='#969696'>- " .. (cmdData.Description or "") .. "</font>"
+            ItemText.TextColor3 = Theme.TextWhite
+            ItemText.Font = Enum.Font.Gotham
+            ItemText.TextSize = 13
+            ItemText.TextXAlignment = Enum.TextXAlignment.Left
+            ItemText.Parent = ItemFrame
+
+            local ClickBtn = Instance.new("TextButton")
+            ClickBtn.Size = UDim2.new(1, 0, 1, 0)
+            ClickBtn.BackgroundTransparency = 1
+            ClickBtn.Text = ""
+            ClickBtn.Parent = ItemFrame
+
+            -- Hover Effect
+            ClickBtn.MouseEnter:Connect(function()
+                TweenService:Create(ItemFrame, AnimConfig.Fast, {BackgroundTransparency = 0}):Play()
+            end)
+            ClickBtn.MouseLeave:Connect(function()
+                TweenService:Create(ItemFrame, AnimConfig.Fast, {BackgroundTransparency = 0.5}):Play()
+            end)
+
+            -- Click to Auto-fill
+            ClickBtn.MouseButton1Click:Connect(function()
+                Input.Text = cmdName .. " "
+                Input:CaptureFocus()
+                task.wait()
+                Input.CursorPosition = #Input.Text + 1
+            end)
+
+            count = count + 1
+        end
+    end
+    CmdList.CanvasSize = UDim2.new(0, 0, 0, count * 43)
+end
+
+Input:GetPropertyChangedSignal("Text"):Connect(function()
+    UpdateList(Input.Text)
+end)
+
+Input.Focused:Connect(function()
+    TweenService:Create(InputStroke, AnimConfig.Fast, {Transparency = 0}):Play()
+end)
+Input.FocusLost:Connect(function()
+    TweenService:Create(InputStroke, AnimConfig.Fast, {Transparency = 0.7}):Play()
+end)
+
+local isOpen = false
+
+local function openMenu()
+    isOpen = true
+    Container.Visible = true
+    Input.Text = ""
+    UpdateList("")
+    
+    Container.Size = UDim2.new(0, 400, 0, 300)
+    TweenService:Create(Container, AnimConfig.Smooth, {Size = UDim2.new(0, 450, 0, 320), GroupTransparency = 0}):Play()
+    Input:CaptureFocus()
+end
+
+local function closeMenu()
+    isOpen = false
+    Input:ReleaseFocus()
+    
+    local tween = TweenService:Create(Container, AnimConfig.Fast, {Size = UDim2.new(0, 430, 0, 300), GroupTransparency = 1})
+    tween:Play()
+    tween.Completed:Connect(function()
+        if not isOpen then Container.Visible = false end
+    end)
+end
+
+-- Command Execution
+Input.FocusLost:Connect(function(enterPressed)
+    if enterPressed and Input.Text ~= "" then
+        local inputText = string.lower(Input.Text):match("^%s*(.-)%s*$")
+        local args = string.split(inputText, " ")
+        local cmdName = table.remove(args, 1)
+
+        for name, data in pairs(Commands) do
+            if string.lower(name) == cmdName then
+                pcall(function() data.Action(unpack(args)) end)
+                break
+            end
+        end
+        closeMenu()
+    end
+end)
+
+-- Main Button Drag & Toggle Logic
+local isDragging = false
+local hasMoved = false
+local dragStartPos = nil
+local startGuiPos = nil
+
+MainButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = true
+        hasMoved = false
+        dragStartPos = input.Position
+        startGuiPos = MainButton.Position
+        TweenService:Create(MainButton, AnimConfig.Fast, {Size = UDim2.new(0, 45, 0, 45)}):Play()
+    end
+end)
+
+MainButton.InputChanged:Connect(function(input)
+    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStartPos
+        if delta.Magnitude > 4 then 
+            hasMoved = true 
+            TweenService:Create(MainButton, AnimConfig.Fast, {
+                ImageTransparency = 0.5,
+                Position = UDim2.new(startGuiPos.X.Scale, startGuiPos.X.Offset + delta.X, startGuiPos.Y.Scale, startGuiPos.Y.Offset + delta.Y)
+            }):Play()
+        end
+    end
+end)
+
+MainButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = false
+        TweenService:Create(MainButton, AnimConfig.Fast, {Size = UDim2.new(0, 50, 0, 50), ImageTransparency = 0}):Play()
+        
+        if not hasMoved then
+            if isOpen then closeMenu() else openMenu() end
+        end
+    end
+end)
+
+-- Click outside to close
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not isOpen then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        local pos = input.Position
+        local objects = ScreenGui:GetGuiObjectsAtPosition(pos.X, pos.Y)
+        local clickedInside = false
+        for _, obj in pairs(objects) do
+            if obj:IsDescendantOf(Container) or obj == MainButton then
+                clickedInside = true
+                break
+            end
+        end
+        if not clickedInside then closeMenu() end
+    end
+end)
+
+UpdateList("")
