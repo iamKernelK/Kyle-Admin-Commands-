@@ -284,12 +284,70 @@ Commands["Goto"] = { Action = function(n) local t = Players:FindFirstChild(n); i
 Commands["Dex"] = { Action = function() loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Dex-Explorer-DPP-73687"))() end, Description = "Load Dex" }
 Commands["DarkDex"] = { Action = function() local l,d=pcall(game.GetObjects,game,"rbxassetid://3567096419"); if not l or type(d[1])~="userdata" then return end local dex=d[1]; if syn and syn.protect_gui then pcall(syn.protect_gui,dex) end; local n=""; for i=1,24 do n=n..string.char(math.random(33,126)) end; dex.Name=n; dex.Parent=CoreGui; local function S(v) task.spawn(setfenv(loadstring(v.Source,"="..v:GetFullName()), setmetatable({script=v}, {__index=getfenv()}))) end; if dex:IsA("LuaSourceContainer") then S(dex) end; for _,v in ipairs(dex:GetDescendants()) do if v:IsA("LuaSourceContainer") then S(v) end end end, Description = "Load DarkDex" }
 Commands["TurtleSpy"] = { Action = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/main/Turtle%20Spy.lua"))() end, Description = "Load TurtleSpy" }
-Commands["ab"] = { Action = function(a,b,c) if not b then local t=string.split(a or ""," "); a,b,c=t[1],t[2],t[3] end; if a and b and c then CreateMacroButton(a,b,c) end end, Description = "Create Macro" }
-Commands["AddButton"] = { Action = function(a,b,c) Commands["ab"].Action(a,b,c) end, Description = "Create Macro Alias" }
-Commands["StartFly"] = { Action = function() ActiveStates.Flying = true; local c = LocalPlayer.Character; local bg = Instance.new("BodyGyro", c.HumanoidRootPart); bg.P = 9e4; bg.maxTorque = Vector3.new(9e9, 9e9, 9e9); bg.cframe = c.HumanoidRootPart.CFrame; local bv = Instance.new("BodyVelocity", c.HumanoidRootPart); bv.velocity = Vector3.zero; bv.maxForce = Vector3.new(9e9, 9e9, 9e9); RunService.RenderStepped:Connect(function() if not ActiveStates.Flying then bg:Destroy() bv:Destroy() return end; c.Humanoid.PlatformStand = true; bv.velocity = c.Humanoid.MoveDirection * 50; bg.cframe = workspace.CurrentCamera.CFrame end) end, Description = "Core Fly" }
-Commands["StopFly"] = { Action = function() ActiveStates.Flying = false; LocalPlayer.Character.Humanoid.PlatformStand = false end, Description = "Core Unfly" }
-Commands["Fly"] = { Action = function() if not FlyBtn then FlyBtn = CreateMacroButton("Fly", "StartFly", "StopFly") end; FlyBtn.Visible = true; Commands["StartFly"].Action() end, Description = "Fly & Show UI" }
-Commands["Unfly"] = { Action = function() if FlyBtn then FlyBtn.Visible = false end; Commands["StopFly"].Action() end, Description = "Unfly & Hide UI" }
+Commands["Fly"] = {
+    Action = function()
+        local p = game:GetService("Players").LocalPlayer
+        local rs = game:GetService("RunService")
+        
+        -- إيقاف أي طيران سابق قبل البدء
+        if _G.KyleFlyStop then _G.KyleFlyStop() end
+        
+        local char = p.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then return end
+        
+        hum.PlatformStand = true
+        
+        local bv = Instance.new("BodyVelocity", hrp)
+        bv.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        
+        local bg = Instance.new("BodyGyro", hrp)
+        bg.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+        bg.P = 10000
+        bg.CFrame = hrp.CFrame
+        
+        -- تشغيل أنيميشن الطيران الثابت (Idle)
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://507765000" -- كود أنيميشن الطيران
+        local track = hum:LoadAnimation(anim)
+        track:Play()
+        
+        _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
+            local cam = workspace.CurrentCamera
+            local moveDir = hum.MoveDirection
+            
+            -- الطيران يعتمد على اتجاه المشي (عصا التحكم أو WASD)
+            -- إذا كان اللاعب لا يتحرك، سيظل معلقاً في مكانه
+            if moveDir.Magnitude > 0 then
+                bv.Velocity = (cam.CFrame.LookVector * moveDir.Z * 50) + 
+                              (cam.CFrame.RightVector * moveDir.X * 50) + 
+                              (cam.CFrame.UpVector * moveDir.Y * 50)
+                bg.CFrame = cam.CFrame
+            else
+                bv.Velocity = Vector3.new(0, 0, 0)
+                bg.CFrame = cam.CFrame
+            end
+        end)
+        
+        _G.KyleFlyStop = function()
+            hum.PlatformStand = false
+            if bv then bv:Destroy() end
+            if bg then bg:Destroy() end
+            if track then track:Stop() end
+            if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
+            _G.KyleFlyStop = nil
+        end
+    end
+}
+
+Commands["UnFly"] = {
+    Action = function()
+        if _G.KyleFlyStop then _G.KyleFlyStop() end
+    end
+}
+
 Commands["Btools"] = { Action = function() local h = Instance.new("HopperBin", LocalPlayer.Backpack); h.BinType = Enum.BinType.Clone; Instance.new("HopperBin", LocalPlayer.Backpack).BinType = Enum.BinType.Hammer end, Description = "Give Btools" }
 Commands["NoBtools"] = { Action = function() for _,v in pairs(LocalPlayer.Backpack:GetChildren()) do if v:IsA("HopperBin") then v:Destroy() end end end, Description = "Remove Btools" }
 Commands["InfiniteYield"] = { Action = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end, Description = "Load IY" }
