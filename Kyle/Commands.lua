@@ -289,7 +289,6 @@ Commands["Fly"] = {
         local p = game:GetService("Players").LocalPlayer
         local rs = game:GetService("RunService")
         
-        -- إيقاف أي طيران سابق قبل البدء
         if _G.KyleFlyStop then _G.KyleFlyStop() end
         
         local char = p.Character
@@ -308,22 +307,18 @@ Commands["Fly"] = {
         bg.P = 10000
         bg.CFrame = hrp.CFrame
         
-        -- تشغيل أنيميشن الطيران الثابت (Idle)
-        local anim = Instance.new("Animation")
-        anim.AnimationId = "rbxassetid://507765000" -- كود أنيميشن الطيران
-        local track = hum:LoadAnimation(anim)
-        track:Play()
-        
         _G.KyleFlyLoop = rs.RenderStepped:Connect(function()
             local cam = workspace.CurrentCamera
             local moveDir = hum.MoveDirection
             
-            -- الطيران يعتمد على اتجاه المشي (عصا التحكم أو WASD)
-            -- إذا كان اللاعب لا يتحرك، سيظل معلقاً في مكانه
+            -- تصحيح الاتجاهات:
+            -- نستخدم الـ LookVector والـ RightVector الخاص بالكاميرا لضمان مطابقة حركة اللاعب مع الشاشة
             if moveDir.Magnitude > 0 then
-                bv.Velocity = (cam.CFrame.LookVector * moveDir.Z * 50) + 
-                              (cam.CFrame.RightVector * moveDir.X * 50) + 
-                              (cam.CFrame.UpVector * moveDir.Y * 50)
+                local velocity = (cam.CFrame.LookVector * moveDir.Z * 50) + 
+                                 (cam.CFrame.RightVector * moveDir.X * 50)
+                -- نلغي تأثير الـ Y في الـ moveDir إذا كنا نريد طيراناً أفقياً ثابتاً، 
+                -- أو نتركه إذا كنت تريد الطيران للأعلى والأسفل.
+                bv.Velocity = velocity
                 bg.CFrame = cam.CFrame
             else
                 bv.Velocity = Vector3.new(0, 0, 0)
@@ -335,7 +330,6 @@ Commands["Fly"] = {
             hum.PlatformStand = false
             if bv then bv:Destroy() end
             if bg then bg:Destroy() end
-            if track then track:Stop() end
             if _G.KyleFlyLoop then _G.KyleFlyLoop:Disconnect() end
             _G.KyleFlyStop = nil
         end
